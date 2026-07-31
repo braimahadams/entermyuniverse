@@ -155,7 +155,7 @@ export async function saveOffer(formData: FormData) {
         .filter(Boolean)
         .join("\n") || null,
     priceCents,
-    currency: String(formData.get("currency") ?? "usd").toLowerCase().slice(0, 3),
+    currency: String(formData.get("currency") ?? "eur").toLowerCase().slice(0, 3),
     durationMin: Math.max(10, Number(formData.get("durationMin")) || 45),
     bufferMin: Math.max(0, Number(formData.get("bufferMin")) || 0),
     noticeHours: Math.max(0, Number(formData.get("noticeHours")) || 0),

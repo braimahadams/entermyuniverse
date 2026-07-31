@@ -58,7 +58,7 @@ export const config = {
   stripe: {
     secretKey: env("STRIPE_SECRET_KEY"),
     webhookSecret: env("STRIPE_WEBHOOK_SECRET"),
-    currency: env("CURRENCY", "usd"),
+    currency: env("CURRENCY", "eur"),
   },
 
   /** Only used by `npm run setup` to seed the first admin account. */

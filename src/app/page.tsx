@@ -61,7 +61,7 @@ export default async function HomePage() {
           <section className="px-5 py-24 sm:px-8 sm:py-32">
             <div className="mx-auto max-w-6xl">
               <SectionHead
-                eyebrow="Universes"
+                eyebrow="Creators"
                 title={
                   <>
                     The people

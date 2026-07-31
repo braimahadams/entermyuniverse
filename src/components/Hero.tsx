@@ -31,7 +31,7 @@ export function Hero({
           <LiveDot />
           <span className="eyebrow">
             {creatorCount > 1
-              ? `${creatorCount} universes and counting`
+              ? `${creatorCount} creators and counting`
               : "Now open — claim a handle"}
           </span>
         </div>

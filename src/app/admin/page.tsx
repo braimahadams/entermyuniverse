@@ -23,14 +23,24 @@ export default async function AdminPage() {
   // don't own the platform. Send them somewhere useful.
   if (!viewer.isAdmin) redirect("/studio");
 
-  const [users, recentFilms, bookings, waitlistCount] = await Promise.all([
-    db.user.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 50,
-      include: {
-        _count: { select: { videos: true, followers: true } },
-      },
-    }),
+  const [users, pendingUsers, recentFilms, bookings, waitlistCount] =
+    await Promise.all([
+      db.user.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        include: {
+          _count: { select: { videos: true, followers: true } },
+        },
+      }),
+      // Surfaced separately: these are the accounts actually waiting on
+      // you, and they'd otherwise be buried in the full list below.
+      db.user.findMany({
+        where: { approved: false },
+        orderBy: { createdAt: "asc" },
+        include: {
+          _count: { select: { videos: true, followers: true } },
+        },
+      }),
     db.video.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
@@ -45,7 +55,7 @@ export default async function AdminPage() {
     db.waitlist.count(),
   ]);
 
-  const currency = bookings[0]?.currency ?? "usd";
+  const currency = bookings[0]?.currency ?? "eur";
   const gross = bookings.reduce((s, b) => s + b.amountCents, 0);
   const platformRevenue = bookings.reduce((s, b) => s + b.platformFeeCents, 0);
 
@@ -80,16 +90,64 @@ export default async function AdminPage() {
       <main className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
         <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Accounts" value={String(users.length)} />
-          <Stat
-            label="Films"
-            value={String(users.reduce((s, u) => s + u._count.videos, 0))}
-          />
+          <Stat label="Pending" value={String(pendingUsers.length)} />
           <Stat label="Gross booked" value={formatPrice(gross, currency)} />
           <Stat
             label="Platform revenue"
             value={formatPrice(platformRevenue, currency)}
           />
         </div>
+
+        {pendingUsers.length > 0 && (
+          <>
+            <h2 className="display mb-5 text-2xl">Waiting on you</h2>
+            <div className="card mb-14 divide-y divide-line rounded-2xl">
+              {pendingUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className="flex flex-wrap items-center justify-between gap-4 p-4"
+                >
+                  <Link
+                    href={`/@${user.handle}`}
+                    className="flex min-w-0 items-center gap-3"
+                  >
+                    <Avatar
+                      src={user.avatarUrl}
+                      name={user.displayName}
+                      size={36}
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm">
+                        {user.displayName}
+                      </span>
+                      <span className="block truncate text-xs text-bone-faint">
+                        @{user.handle} · {user._count.videos} films
+                      </span>
+                    </span>
+                  </Link>
+
+                  <div className="flex items-center gap-2">
+                    <FlagToggle
+                      id={user.id}
+                      field="suspended"
+                      value={!user.suspended}
+                      active={user.suspended}
+                      label="Suspend"
+                      danger
+                    />
+                    <FlagToggle
+                      id={user.id}
+                      field="approved"
+                      value={true}
+                      active={false}
+                      label="Approve"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         <h2 className="display mb-5 text-2xl">Accounts</h2>
         <div className="card divide-y divide-line rounded-2xl">
@@ -125,6 +183,13 @@ export default async function AdminPage() {
               </Link>
 
               <div className="flex flex-wrap items-center gap-2">
+                <FlagToggle
+                  id={user.id}
+                  field="approved"
+                  value={!user.approved}
+                  active={user.approved}
+                  label={user.approved ? "Approved" : "Approve"}
+                />
                 <Toggle
                   action={setCanSell}
                   id={user.id}

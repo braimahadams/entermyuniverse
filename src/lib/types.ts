@@ -58,6 +58,16 @@ export function formatPrice(cents: number, currency: string): string {
   }).format(cents / 100);
 }
 
+/**
+ * "Braima's Universe", "Mara's Universe" — the possessive, personalized
+ * form used on a creator's own page. First name only, matching the same
+ * convention already used on the film player's end-card CTA.
+ */
+export function possessiveFirstName(displayName: string): string {
+  const first = displayName.trim().split(/\s+/)[0] || displayName;
+  return /s$/i.test(first) ? `${first}'` : `${first}'s`;
+}
+
 export function formatDuration(seconds: number | null): string {
   if (!seconds) return "";
   const m = Math.floor(seconds / 60);

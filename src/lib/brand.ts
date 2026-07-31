@@ -7,11 +7,11 @@
 
 export const brand = {
   name: "Enter My Universe",
-  /** Short mark for the nav and tight spaces. */
-  short: "Universe",
+  /** Short mark for the nav and tight spaces — not the bare word "Universe". */
+  short: "EMU",
   domain: "entermyuniverse.com",
 
-  tagline: "Everyone has a universe. Most people never let anyone in.",
+  tagline: "Short films from real people. Book the ones who make you think.",
 
   metaTitle: "Enter My Universe — short films, and the people behind them",
   metaDescription:
@@ -21,11 +21,8 @@ export const brand = {
     line1: "Everyone is talking.",
     line2: "Almost no one is",
     line3: "saying anything.",
-    sub: "Short films about the parts of life nobody explains. Every creator here has a universe — walk into one, and if it lands, talk to the person who built it.",
+    sub: "Short films about the parts of life nobody explains. Every creator here has their own universe — walk into one, and if it lands, talk to the person who built it.",
   },
-
-  /** What a creator's page is called, in prose. */
-  universeWord: "universe",
 
   marquee: [
     "the system was built like this",

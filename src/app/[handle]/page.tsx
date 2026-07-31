@@ -13,7 +13,7 @@ import { getCreatorByHandle, getCreatorFilms } from "@/lib/creators";
 import { db } from "@/lib/db";
 import { brand } from "@/lib/brand";
 import { spotsLeftThisWeek } from "@/lib/scheduling";
-import { formatPrice } from "@/lib/types";
+import { formatPrice, possessiveFirstName } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +46,7 @@ export async function generateMetadata({
   const creator = await getCreatorByHandle(handle);
   if (!creator) return { title: "Not found" };
 
-  const title = `${creator.displayName} (@${creator.handle})`;
+  const title = `${possessiveFirstName(creator.displayName)} Universe (@${creator.handle})`;
   const description =
     creator.tagline ??
     creator.bio ??
@@ -81,7 +81,9 @@ export default async function UniversePage({
   const isOwner = viewer?.id === creator.id;
 
   const [films, offers, following] = await Promise.all([
-    getCreatorFilms(creator.id),
+    // A stranger sees films only once the account is approved; the owner
+    // always sees their own, so they can check their work while waiting.
+    getCreatorFilms(creator.id, isOwner || creator.approved),
     creator.canSell
       ? db.sessionType.findMany({
           where: { userId: creator.id, active: true },
@@ -129,7 +131,10 @@ export default async function UniversePage({
                     {creator.displayName}
                     {creator.verified && <VerifiedTick size={18} />}
                   </h1>
-                  <p className="mt-2 text-sm text-bone-faint">
+                  <p className="mt-2.5 text-sm text-ember/85">
+                    {possessiveFirstName(creator.displayName)} Universe
+                  </p>
+                  <p className="mt-1 text-sm text-bone-faint">
                     @{creator.handle}
                   </p>
                 </div>
@@ -187,6 +192,20 @@ export default async function UniversePage({
             </div>
           </div>
         </header>
+
+        {isOwner && !creator.approved && (
+          <div className="px-5 pb-10 sm:px-8">
+            <div className="mx-auto max-w-5xl rounded-2xl border border-ember/35 bg-ember/[0.07] px-5 py-4">
+              <p className="text-sm text-bone">
+                Only you can see this page like this.
+              </p>
+              <p className="mt-1.5 text-sm text-bone-dim">
+                Your films are private until an admin approves your account —
+                everyone else sees an empty page for now.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ── the door ── */}
         {creator.canSell && offers.length > 0 && (

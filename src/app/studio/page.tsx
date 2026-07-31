@@ -58,7 +58,7 @@ export default async function StudioOverviewPage() {
       }),
     ]);
 
-  const currency = earnings[0]?.currency ?? "usd";
+  const currency = earnings[0]?.currency ?? "eur";
   // What actually reaches them — gross minus the platform's cut. Showing
   // gross here would be a lie by omission.
   const netAll = earnings.reduce(
@@ -95,6 +95,16 @@ export default async function StudioOverviewPage() {
           </Link>
         </p>
       </div>
+
+      {!user.approved && (
+        <div className="mb-8 rounded-2xl border border-ember/35 bg-ember/[0.07] px-5 py-4">
+          <p className="text-sm text-bone">Your account is pending review.</p>
+          <p className="mt-1.5 text-sm text-bone-dim">
+            Upload as much as you like — you&rsquo;re the only one who can see
+            it. Films go public once an admin approves your account.
+          </p>
+        </div>
+      )}
 
       {!user.canSell && (
         <div className="mb-8 rounded-2xl border border-line-bright bg-bone/[0.03] px-5 py-4">

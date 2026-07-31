@@ -124,7 +124,13 @@ async function main() {
 
   const owner = await db.user.upsert({
     where: { handle },
-    update: { isAdmin: true, canSell: true, verified: true, featured: true },
+    update: {
+      isAdmin: true,
+      approved: true,
+      canSell: true,
+      verified: true,
+      featured: true,
+    },
     create: {
       handle,
       email,
@@ -134,9 +140,10 @@ async function main() {
         "Short films about the system, virality, money and the mind. Then, if it lands, we talk.",
       bio: "I make things that take an idea apart and stop before the comfortable part.",
       timezone,
-      // The founding account: admin, verified, and the first one allowed
-      // to take bookings.
+      // The founding account: admin, approved, verified, and the first
+      // one allowed to take bookings.
       isAdmin: true,
+      approved: true,
       canSell: true,
       verified: true,
       featured: true,
@@ -149,7 +156,7 @@ async function main() {
   // be. Publishing-only — no selling — which is the default for everyone.
   const guest = await db.user.upsert({
     where: { handle: "mara" },
-    update: {},
+    update: { approved: true },
     create: {
       handle: "mara",
       email: "mara@example.com",
@@ -157,6 +164,9 @@ async function main() {
       passwordHash: await hashPassword(randomBytes(24).toString("hex")),
       tagline: "Writing about the quiet economics of ordinary life.",
       timezone: "Europe/London",
+      // Trusted seed data, so it's pre-approved — a real signup would
+      // start false and wait for you.
+      approved: true,
       canSell: false,
     },
   });
@@ -190,7 +200,8 @@ async function main() {
         "No recording unless you ask for one",
       ].join("\n"),
       durationMin: 45,
-      priceCents: 12_000,
+      priceCents: 3_000,
+      currency: "eur",
       bufferMin: 15,
       noticeHours: 12,
       horizonDays: 21,
@@ -210,7 +221,8 @@ async function main() {
         "One follow-up message thread, two weeks",
       ].join("\n"),
       durationMin: 90,
-      priceCents: 25_000,
+      priceCents: 6_500,
+      currency: "eur",
       bufferMin: 30,
       noticeHours: 24,
       horizonDays: 28,

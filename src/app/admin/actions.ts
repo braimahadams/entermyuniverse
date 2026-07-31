@@ -52,7 +52,9 @@ export async function setUserFlag(formData: FormData) {
   const field = String(formData.get("field") ?? "");
   const value = formData.get("value") === "true";
 
-  if (!id || !["verified", "featured", "suspended"].includes(field)) return;
+  if (!id || !["approved", "verified", "featured", "suspended"].includes(field)) {
+    return;
+  }
 
   await db.user.update({ where: { id }, data: { [field]: value } });
 

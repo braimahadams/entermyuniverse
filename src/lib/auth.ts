@@ -88,6 +88,7 @@ export type CurrentUser = {
   displayName: string;
   avatarUrl: string | null;
   isAdmin: boolean;
+  approved: boolean;
   canSell: boolean;
   suspended: boolean;
   timezone: string;
@@ -116,6 +117,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
           displayName: true,
           avatarUrl: true,
           isAdmin: true,
+          approved: true,
           canSell: true,
           suspended: true,
           timezone: true,

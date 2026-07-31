@@ -163,7 +163,7 @@ function OfferForm({
         <Field label="Currency">
           <input
             name="currency"
-            defaultValue={offer?.currency ?? "usd"}
+            defaultValue={offer?.currency ?? "eur"}
             maxLength={3}
             className={input}
           />

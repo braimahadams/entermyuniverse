@@ -4,20 +4,22 @@
 // User. Anyone can sign up, claim a handle, and publish films into their
 // own universe at /@handle.
 //
-// Selling 1:1 calls is gated behind `canSell`, which starts false for
-// everyone. The whole marketplace — availability, pricing, Stripe Connect,
+// Publishing is gated behind `approved` (see User below) and selling is
+// gated behind `canSell` — both start false for everyone but the founding
+// account. The whole marketplace — availability, pricing, Stripe Connect,
 // the platform's cut — is modelled and working; it's just switched off
-// until an account is granted the flag.
+// until an account has earned the flag.
 //
-// SQLite for development. To move to Postgres (Neon/Supabase free tier):
-// change provider to "postgresql", set DATABASE_URL, `npx prisma db push`.
+// Postgres (Neon/Supabase free tier both work). Vercel's serverless
+// filesystem is read-only, which rules out SQLite in production — so dev
+// and prod both point at the same kind of database, just different URLs.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -46,6 +48,10 @@ model User {
   // ── platform roles ──
   // Site-wide admin: moderation, granting canSell. That's you.
   isAdmin  Boolean @default(false)
+  // Anyone can sign up, but a fresh account's films stay off the public
+  // feed and their own page shows empty until an admin flips this. Signup
+  // itself is never blocked — only visibility is.
+  approved Boolean @default(false)
   // Can this account take paid bookings? Off by default — content first,
   // commerce only once someone has earned it.
   canSell  Boolean @default(false)
@@ -83,6 +89,7 @@ model User {
 
   @@index([featured, createdAt])
   @@index([canSell])
+  @@index([approved])
 }
 
 // Login sessions, stored server-side so they can be revoked — a signed
@@ -178,7 +185,7 @@ model SessionType {
   durationMin Int
   // Minor units (cents), to keep money out of floating point.
   priceCents  Int
-  currency    String @default("usd")
+  currency    String @default("eur")
 
   bufferMin   Int @default(15)
   noticeHours Int @default(12)
@@ -262,7 +269,7 @@ model Booking {
 
   // ── money ──
   amountCents Int
-  currency    String @default("usd")
+  currency    String @default("eur")
   // The platform's share of amountCents, frozen at booking time so a later
   // fee change never rewrites history.
   platformFeeCents Int @default(0)

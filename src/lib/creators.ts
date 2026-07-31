@@ -21,15 +21,20 @@ export type CreatorView = {
   links: string[];
   verified: boolean;
   canSell: boolean;
+  /** Approved to publish. Gates whether anyone but the owner sees films. */
+  approved: boolean;
   filmCount: number;
   followerCount: number;
 };
 
-/** Rows a visitor is allowed to see: published, approved, not suspended. */
+/**
+ * Rows a visitor is allowed to see: published, not moderated away, and
+ * belonging to a creator who is both approved to publish and not suspended.
+ */
 export const PUBLIC_VIDEO_FILTER = {
   published: true,
   approved: true,
-  user: { suspended: false },
+  user: { suspended: false, approved: true },
 } as const;
 
 type VideoRow = {
@@ -105,6 +110,7 @@ export async function getFeaturedCreators(limit = 6): Promise<CreatorView[]> {
   const users = await db.user.findMany({
     where: {
       suspended: false,
+      approved: true,
       // Nobody wants to open an empty universe.
       videos: { some: PUBLIC_VIDEO_FILTER },
     },
@@ -153,6 +159,7 @@ type UserRow = {
   links: string | null;
   verified: boolean;
   canSell: boolean;
+  approved: boolean;
   _count: { videos: number; followers: number };
 };
 
@@ -168,13 +175,26 @@ function toCreatorView(user: UserRow): CreatorView {
     links: user.links?.split("\n").map((l) => l.trim()).filter(Boolean) ?? [],
     verified: user.verified,
     canSell: user.canSell,
+    approved: user.approved,
     filmCount: user._count.videos,
     followerCount: user._count.followers,
   };
 }
 
-/** A creator's own films, for their universe page. */
-export async function getCreatorFilms(userId: string): Promise<FilmView[]> {
+/**
+ * A creator's own films, for their universe page.
+ *
+ * `visible` is false when the viewer is a stranger and the account hasn't
+ * been approved yet — the page then renders its normal empty state rather
+ * than a special "pending" message, so an unapproved account looks exactly
+ * like a new one with nothing published, not like a rejection.
+ */
+export async function getCreatorFilms(
+  userId: string,
+  visible = true,
+): Promise<FilmView[]> {
+  if (!visible) return [];
+
   const videos = await db.video.findMany({
     where: { userId, published: true, approved: true },
     orderBy: [{ position: "asc" }, { createdAt: "desc" }],
