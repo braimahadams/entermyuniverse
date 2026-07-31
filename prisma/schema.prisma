@@ -1,0 +1,303 @@
+// ENTER MY UNIVERSE — data model
+//
+// A platform, not a personal site. Every piece of content belongs to a
+// User. Anyone can sign up, claim a handle, and publish films into their
+// own universe at /@handle.
+//
+// Selling 1:1 calls is gated behind `canSell`, which starts false for
+// everyone. The whole marketplace — availability, pricing, Stripe Connect,
+// the platform's cut — is modelled and working; it's just switched off
+// until an account is granted the flag.
+//
+// SQLite for development. To move to Postgres (Neon/Supabase free tier):
+// change provider to "postgresql", set DATABASE_URL, `npx prisma db push`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── PEOPLE ───────────────────────────────────────────────────
+
+model User {
+  id String @id @default(cuid())
+
+  // The handle. Lowercase, unique, and the whole address of someone's
+  // universe: entermyuniverse.com/@handle
+  handle String @unique
+  email  String @unique
+
+  // scrypt, salted per user. See src/lib/auth.ts.
+  passwordHash String
+
+  displayName String
+  // One line under the name on their universe page.
+  tagline     String?
+  bio         String?
+  avatarUrl   String?
+  // Wide image behind the header of their universe.
+  bannerUrl   String?
+  links       String? // newline-separated URLs
+
+  // ── platform roles ──
+  // Site-wide admin: moderation, granting canSell. That's you.
+  isAdmin  Boolean @default(false)
+  // Can this account take paid bookings? Off by default — content first,
+  // commerce only once someone has earned it.
+  canSell  Boolean @default(false)
+  // Shown on the feed. Editorial control over what the front page looks like.
+  featured Boolean @default(false)
+  // Cosmetic tick. Trust signal, nothing more.
+  verified Boolean @default(false)
+  // Set by a moderator to hide everything this account has published.
+  suspended Boolean @default(false)
+
+  // ── money ──
+  // Stripe Connect account, so payouts go to the creator and the platform
+  // takes its cut atomically. Null until they onboard.
+  stripeAccountId String?
+  // True once Stripe says they can actually receive money.
+  payoutsEnabled  Boolean @default(false)
+  // Platform's cut in basis points. 1500 = 15%. Per-user so you can strike
+  // a different deal with someone without a migration.
+  platformFeeBps  Int     @default(1500)
+
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  videos      Video[]
+  sessionTypes SessionType[]
+  availability AvailabilityRule[]
+  blackouts    BlackoutDate[]
+  sessions     Session[]
+  // Bookings where this user is the one being booked.
+  bookingsReceived Booking[] @relation("CreatorBookings")
+
+  following Follow[] @relation("Follower")
+  followers Follow[] @relation("Following")
+
+  @@index([featured, createdAt])
+  @@index([canSell])
+}
+
+// Login sessions, stored server-side so they can be revoked — a signed
+// cookie alone can't be taken away before it expires.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Follow {
+  id String @id @default(cuid())
+
+  followerId String
+  follower   User   @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+
+  followingId String
+  following   User   @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+// ─── CONTENT ──────────────────────────────────────────────────
+
+model Video {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Unique per creator, not globally — two people may both have a film
+  // called "the-system", and neither should have to rename it.
+  slug String
+
+  title       String
+  hook        String
+  description String?
+
+  // The question the film raises and refuses to answer. Shown when
+  // playback ends, and carried into the booking form as the topic.
+  // The hinge between watching and paying.
+  openQuestion String?
+  topic        String  @default("system")
+
+  // Meaning depends on the active storage/video provider:
+  // local -> filename under /public/media, r2 -> object key, mux -> playback ID
+  sourceId     String
+  thumbnailUrl String?
+  durationSec  Int?
+  // Bytes. Kept so a creator can be shown their own storage use.
+  sizeBytes    Int?
+
+  published Boolean @default(true)
+  // Moderation. Anything false is hidden from the public feed.
+  approved  Boolean @default(true)
+  // Set by a moderator; explains a takedown to the creator.
+  moderationNote String?
+
+  featured Boolean @default(false)
+  position Int     @default(0)
+  views    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@unique([userId, slug])
+  @@index([published, approved, createdAt])
+  @@index([userId, position])
+}
+
+// ─── OFFERS ───────────────────────────────────────────────────
+
+model SessionType {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug        String
+  name        String
+  tagline     String
+  description String?
+  includes    String? // newline-separated bullets
+
+  durationMin Int
+  // Minor units (cents), to keep money out of floating point.
+  priceCents  Int
+  currency    String @default("usd")
+
+  bufferMin   Int @default(15)
+  noticeHours Int @default(12)
+  horizonDays Int @default(21)
+  // Weekly cap. Real scarcity, and protection from your own calendar.
+  maxPerWeek  Int @default(6)
+
+  active   Boolean @default(true)
+  position Int     @default(0)
+
+  bookings Booking[]
+
+  @@unique([userId, slug])
+  @@index([userId, active, position])
+}
+
+// ─── AVAILABILITY ─────────────────────────────────────────────
+
+model AvailabilityRule {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 0 = Sunday ... 6 = Saturday
+  weekday  Int
+  // Minutes from local midnight. 540 = 09:00.
+  startMin Int
+  endMin   Int
+  timezone String  @default("UTC")
+  active   Boolean @default(true)
+
+  @@index([userId, active, weekday])
+}
+
+model BlackoutDate {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  startsAt DateTime
+  endsAt   DateTime
+  reason   String?
+
+  @@index([userId, startsAt, endsAt])
+}
+
+// ─── BOOKINGS ─────────────────────────────────────────────────
+
+// Status is a String because SQLite has no enum type. Allowed values are
+// a typed union in src/lib/constants.ts:
+//   PENDING | CONFIRMED | CANCELLED | COMPLETED | NO_SHOW
+
+model Booking {
+  id        String @id @default(cuid())
+  reference String @unique
+
+  // Who is being booked.
+  creatorId String
+  creator   User   @relation("CreatorBookings", fields: [creatorId], references: [id])
+
+  sessionTypeId String
+  sessionType   SessionType @relation(fields: [sessionTypeId], references: [id])
+
+  // Which film sent them. Tells a creator what actually converts.
+  sourceVideoId String?
+  sourceVideo   Video?  @relation(fields: [sourceVideoId], references: [id], onDelete: SetNull)
+
+  // The guest books by email — no account required. Forcing a signup
+  // between wanting a call and paying for one loses bookings.
+  name     String
+  email    String
+  topic    String
+  context  String?
+  timezone String  @default("UTC")
+
+  startsAt DateTime
+  endsAt   DateTime
+
+  status        String    @default("PENDING")
+  holdExpiresAt DateTime?
+
+  // ── money ──
+  amountCents Int
+  currency    String @default("usd")
+  // The platform's share of amountCents, frozen at booking time so a later
+  // fee change never rewrites history.
+  platformFeeCents Int @default(0)
+
+  stripeSessionId String? @unique
+  stripePaymentId String?
+  paidAt          DateTime?
+
+  meetingUrl      String?
+  meetingProvider String?
+  // Secret in the guest's manage/join link.
+  accessToken String @unique @default(cuid())
+
+  remindedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([creatorId, startsAt, status])
+  @@index([startsAt, status])
+  @@index([email])
+}
+
+// ─── AUDIENCE ─────────────────────────────────────────────────
+
+model Waitlist {
+  id String @id @default(cuid())
+
+  email String
+  name  String?
+  // Null = the platform's own list. Set = this creator's list.
+  creatorId String?
+  interest  String?
+  source    String?
+  createdAt DateTime @default(now())
+
+  // Someone may join the platform list and a specific creator's list.
+  @@unique([email, creatorId])
+}
