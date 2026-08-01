@@ -68,7 +68,24 @@ export const config = {
     email: env("OWNER_EMAIL", "you@example.com"),
     password: env("OWNER_PASSWORD"),
   },
+
+  /**
+   * Whose site this is.
+   *
+   * Set to a handle and the whole thing becomes one person's place: the
+   * root redirects to their page, public signup is closed, and every
+   * "join us" affordance disappears. Clear it and the same codebase is a
+   * multi-creator platform again — the data model never changed, only what
+   * the front door admits.
+   */
+  primaryHandle: env("PRIMARY_HANDLE").toLowerCase().replace(/^@/, ""),
 } as const;
+
+/**
+ * True when the site belongs to one person rather than a platform.
+ * Gates signup, the discovery feed, and all recruiting copy.
+ */
+export const soloMode = Boolean(config.primaryHandle);
 
 /**
  * True when Stripe is wired up. When false the app runs in "free mode":

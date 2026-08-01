@@ -14,6 +14,7 @@ import { db } from "@/lib/db";
 import { brand } from "@/lib/brand";
 import { spotsLeftThisWeek } from "@/lib/scheduling";
 import { formatPrice, possessiveFirstName } from "@/lib/types";
+import { soloMode } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +113,7 @@ export default async function UniversePage({
     <>
       <Ambience />
       <ScrollReveal />
-      <Nav user={viewer} />
+      <Nav user={viewer} solo={soloMode} />
 
       <main className="relative z-10">
         {/* ── the header ── */}
@@ -149,11 +150,15 @@ export default async function UniversePage({
                     Edit your universe
                   </Link>
                 ) : (
-                  <FollowButton
-                    handle={creator.handle}
-                    initialFollowing={following}
-                    signedIn={Boolean(viewer)}
-                  />
+                  // Following needs an account, and in solo mode there are
+                  // no accounts to make — so it'd be a button to nowhere.
+                  !soloMode && (
+                    <FollowButton
+                      handle={creator.handle}
+                      initialFollowing={following}
+                      signedIn={Boolean(viewer)}
+                    />
+                  )
                 )}
               </div>
             </div>
@@ -174,10 +179,12 @@ export default async function UniversePage({
                 <span className="text-bone">{creator.filmCount}</span>{" "}
                 {creator.filmCount === 1 ? "film" : "films"}
               </span>
-              <span>
-                <span className="text-bone">{creator.followerCount}</span>{" "}
-                {creator.followerCount === 1 ? "follower" : "followers"}
-              </span>
+              {!soloMode && (
+                <span>
+                  <span className="text-bone">{creator.followerCount}</span>{" "}
+                  {creator.followerCount === 1 ? "follower" : "followers"}
+                </span>
+              )}
               {creator.links.map((link) => (
                 <a
                   key={link}
@@ -251,7 +258,7 @@ export default async function UniversePage({
         )}
 
         {/* ── the films ── */}
-        <section className="px-5 py-16 sm:px-8 sm:py-24">
+        <section id="films" className="px-5 py-16 sm:px-8 sm:py-24">
           <div className="mx-auto max-w-5xl">
             {films.length === 0 ? (
               <div className="card rounded-3xl p-10 text-center sm:p-16">

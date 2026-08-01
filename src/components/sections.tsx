@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { brand } from "@/lib/brand";
+import { soloMode } from "@/lib/config";
 
 /** Section heading used everywhere, so the rhythm never drifts. */
 export function SectionHead({
@@ -137,12 +138,11 @@ export function Footer() {
         </div>
 
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-bone-faint">
-          <Link href="/signup" className="transition-colors hover:text-bone">
-            Claim a handle
-          </Link>
-          <Link href="/login" className="transition-colors hover:text-bone">
-            Sign in
-          </Link>
+          {!soloMode && (
+            <Link href="/signup" className="transition-colors hover:text-bone">
+              Claim a handle
+            </Link>
+          )}
           <a
             href={brand.social.instagram}
             target="_blank"

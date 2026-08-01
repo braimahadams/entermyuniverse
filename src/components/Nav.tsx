@@ -11,7 +11,7 @@ export type NavUser = {
   avatarUrl: string | null;
 } | null;
 
-export function Nav({ user }: { user: NavUser }) {
+export function Nav({ user, solo }: { user: NavUser; solo: boolean }) {
   const [lifted, setLifted] = useState(false);
 
   useEffect(() => {
@@ -43,7 +43,9 @@ export function Nav({ user }: { user: NavUser }) {
 
         <div className="flex items-center gap-1 sm:gap-3">
           <Link
-            href="/#films"
+            // In solo mode the root redirects, which would strip the hash —
+            // so scroll within the page we're already on.
+            href={solo ? "#films" : "/#films"}
             className="hidden rounded-full px-4 py-2 text-sm text-bone-dim transition-colors hover:text-bone sm:block"
           >
             Watch
@@ -70,6 +72,15 @@ export function Nav({ user }: { user: NavUser }) {
                 <span className="hidden text-sm sm:block">@{user.handle}</span>
               </Link>
             </>
+          ) : solo ? (
+            // One person's site: no recruiting. Just a quiet way back in
+            // for the one person who owns it.
+            <Link
+              href="/login"
+              className="rounded-full px-4 py-2 text-sm text-bone-faint transition-colors hover:text-bone"
+            >
+              Sign in
+            </Link>
           ) : (
             <>
               <Link

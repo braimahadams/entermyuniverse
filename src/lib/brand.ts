@@ -1,27 +1,39 @@
 /**
- * Platform copy, in one file.
+ * Site copy, in one file.
  *
- * You will rewrite this ten times before you touch a component. Keep it
- * here so that's a two-minute job.
+ * Deliberately short. This is one person's place, not a product being
+ * pitched — a visitor arrives already knowing whose page it is, because
+ * they clicked a link with his name on it. Explaining the concept to them
+ * is just noise between them and the videos.
+ *
+ * The platform-mode copy (hero, marquee, process, faq) only renders when
+ * PRIMARY_HANDLE is cleared. It's kept here, unused, so reopening the site
+ * to other creators is a config change rather than a rewrite.
  */
 
 export const brand = {
   name: "Enter My Universe",
-  /** Short mark for the nav and tight spaces — not the bare word "Universe". */
+  /** Short mark for the nav and tight spaces. */
   short: "EMU",
   domain: "entermyuniverse.com",
 
-  tagline: "Short films from real people. Book the ones who make you think.",
+  tagline: "Thoughts that don't fit anywhere else.",
 
-  metaTitle: "Enter My Universe — short films, and the people behind them",
+  metaTitle: "Enter My Universe",
   metaDescription:
-    "A place for people who think out loud. Short films about the system, virality, money and the mind — and a door to the person who made them.",
+    "Where I say what I actually think — about the system, money, belief, and the parts of life nobody explains.",
+
+  social: {
+    instagram: "https://instagram.com/yourhandle",
+  },
+
+  /* ── platform mode only (PRIMARY_HANDLE unset) ─────────────── */
 
   hero: {
     line1: "Everyone is talking.",
     line2: "Almost no one is",
     line3: "saying anything.",
-    sub: "Short films about the parts of life nobody explains. Every creator here has their own universe — walk into one, and if it lands, talk to the person who built it.",
+    sub: "Short films about the parts of life nobody explains — and a way to reach the people who make them.",
   },
 
   marquee: [
@@ -36,45 +48,33 @@ export const brand = {
   process: [
     {
       n: "01",
-      title: "Wander",
-      body: "Films that take an idea apart and stop exactly where it starts to be about you. No answers handed out.",
+      title: "Watch",
+      body: "Films that take an idea apart and stop where it starts to be about you.",
     },
     {
       n: "02",
-      title: "Enter",
-      body: "Every creator has a universe at their own handle. Follow the ones that make you think, ignore the rest.",
+      title: "Follow",
+      body: "Everyone here has their own page. Keep the ones that make you think.",
     },
     {
       n: "03",
       title: "Talk",
-      body: "Some creators open a door: book them, one to one, on video. Not a comment thread — an actual conversation.",
+      body: "Some open a door: book them, one to one, on video. Not a comment thread.",
     },
   ],
 
   faq: [
     {
       q: "What is this?",
-      a: "A place to watch people think out loud, and sometimes to reach them. Instagram gives you a comment box. This gives you forty-five uninterrupted minutes with someone whose head you want to be inside.",
-    },
-    {
-      q: "Can I put my own films here?",
-      a: "Yes. Claim a handle, and everything you publish lives at entermyuniverse.com/@you. Free, and yours to take with you.",
-    },
-    {
-      q: "Can I sell calls too?",
-      a: "Not yet by default. Publishing is open to everyone; taking bookings is switched on account by account while the platform is young. Build something worth booking and ask.",
+      a: "A place to watch people think out loud, and sometimes to reach them.",
     },
     {
       q: "What does it cost to book someone?",
-      a: "Whatever they set. You pay once, up front, and you can move or cancel it yourself up to 12 hours before — refunded in full, without messaging anyone.",
+      a: "Whatever they set. You pay once, and you can move or cancel it yourself up to 12 hours before, refunded in full.",
     },
     {
       q: "Is any of it recorded?",
-      a: "Only if both of you want it. Default is no recording, no notes shared, nothing published.",
+      a: "Only if both of you want it. Default is no recording, nothing published.",
     },
   ],
-
-  social: {
-    instagram: "https://instagram.com/yourhandle",
-  },
 } as const;

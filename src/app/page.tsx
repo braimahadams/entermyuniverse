@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Ambience } from "@/components/Ambience";
 import { CreatorRail } from "@/components/CreatorRail";
 import { FilmWall } from "@/components/FilmWall";
@@ -11,11 +12,17 @@ import { getCurrentUser } from "@/lib/auth";
 import { getFeaturedCreators, getFeed } from "@/lib/creators";
 import { db } from "@/lib/db";
 import { brand } from "@/lib/brand";
+import { config, soloMode } from "@/lib/config";
 
 // The feed moves whenever anyone publishes, so this can't be cached hard.
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  // One person's site: the front door is their page, not a directory of
+  // strangers. Everything below is the platform build, kept intact and
+  // unreachable until PRIMARY_HANDLE is cleared.
+  if (soloMode) redirect(`/@${config.primaryHandle}`);
+
   const [user, films, creators, creatorCount] = await Promise.all([
     getCurrentUser(),
     getFeed(24),
@@ -27,7 +34,7 @@ export default async function HomePage() {
     <>
       <Ambience />
       <ScrollReveal />
-      <Nav user={user} />
+      <Nav user={user} solo={false} />
 
       <main className="relative z-10">
         <Hero creatorCount={creatorCount} signedIn={Boolean(user)} />

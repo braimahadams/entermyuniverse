@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { config } from "@/lib/config";
+import { config, soloMode } from "@/lib/config";
 import {
   createSession,
   destroySession,
@@ -25,6 +25,13 @@ export async function signup(
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
+  // Enforced here, not only by hiding the form. A server action is callable
+  // by anyone who knows its generated id, so a hidden page is not a closed
+  // door — this is.
+  if (soloMode) {
+    return { error: "This site isn't open for signups." };
+  }
+
   const parsed = signupSchema.safeParse({
     handle: formData.get("handle"),
     displayName: formData.get("displayName"),

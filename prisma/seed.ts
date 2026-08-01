@@ -137,8 +137,8 @@ async function main() {
       displayName: process.env.OWNER_NAME || "Admin",
       passwordHash: await hashPassword(password),
       tagline:
-        "Short films about the system, virality, money and the mind. Then, if it lands, we talk.",
-      bio: "I make things that take an idea apart and stop before the comfortable part.",
+        "I think out loud about the system, money, belief — the parts of life nobody explains.",
+      bio: "My social pages are for the work. This is for the thinking behind it.",
       timezone,
       // The founding account: admin, approved, verified, and the first
       // one allowed to take bookings.
