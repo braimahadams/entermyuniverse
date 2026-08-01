@@ -7,6 +7,8 @@ build
 npm-debug.log*
 .env
 .env*.local
+# Personal deploy notes — contains the live database credential.
+DEPLOY.md
 .vercel
 next-env.d.ts
 *.tsbuildinfo
