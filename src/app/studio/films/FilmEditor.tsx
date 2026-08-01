@@ -3,16 +3,20 @@
 import { useState } from "react";
 import { FilmUploader, type UploadResult } from "@/components/FilmUploader";
 import { deleteFilm, saveFilm } from "@/app/studio/actions";
-import { TOPICS } from "@/lib/constants";
+
+export type CollectionOption = { slug: string; name: string };
 
 export type StudioFilm = {
   id: string;
   slug: string;
   title: string;
   hook: string;
+  summary: string | null;
   description: string | null;
   openQuestion: string | null;
-  topic: string;
+  transcript: string | null;
+  collections: string[];
+  coreThought: boolean;
   sourceId: string;
   thumbnailUrl: string | null;
   durationSec: number | null;
@@ -26,9 +30,11 @@ export type StudioFilm = {
 export function FilmEditor({
   films,
   storageProvider,
+  allCollections,
 }: {
   films: StudioFilm[];
   storageProvider: "local" | "blob";
+  allCollections: CollectionOption[];
 }) {
   const [adding, setAdding] = useState(films.length === 0);
 
@@ -45,7 +51,11 @@ export function FilmEditor({
               Cancel
             </button>
           </div>
-          <FilmForm storageProvider={storageProvider} onSaved={() => setAdding(false)} />
+          <FilmForm
+            storageProvider={storageProvider}
+            allCollections={allCollections}
+            onSaved={() => setAdding(false)}
+          />
         </div>
       ) : (
         <button
@@ -74,7 +84,11 @@ export function FilmEditor({
               </p>
             )}
 
-            <FilmForm film={film} storageProvider={storageProvider} />
+            <FilmForm
+              film={film}
+              storageProvider={storageProvider}
+              allCollections={allCollections}
+            />
           </details>
         ))}
       </div>
@@ -85,10 +99,12 @@ export function FilmEditor({
 function FilmForm({
   film,
   storageProvider,
+  allCollections,
   onSaved,
 }: {
   film?: StudioFilm;
   storageProvider: "local" | "blob";
+  allCollections: CollectionOption[];
   onSaved?: () => void;
 }) {
   // Held in state so an upload can fill the hidden fields the form posts.
@@ -131,17 +147,65 @@ function FilmForm({
         <input name="title" required defaultValue={film?.title} className={input} />
       </Field>
 
-      <Field label="Hook" hint="One line, shown under the title on the tile.">
+      <Field label="Hook" hint="One line, shown under the title on the card.">
         <input name="hook" defaultValue={film?.hook} className={input} />
       </Field>
 
-      <Field label="Description">
+      <Field
+        label="Summary"
+        hint="Two or three sentences, shown under the video. Also the description Google and social previews use — so write it for someone who hasn't watched yet."
+      >
+        <textarea
+          name="summary"
+          rows={2}
+          defaultValue={film?.summary ?? ""}
+          className={`${input} resize-none`}
+        />
+      </Field>
+
+      <Field label="Description" hint="Optional longer text under the summary.">
         <textarea
           name="description"
           rows={2}
           defaultValue={film?.description ?? ""}
           className={`${input} resize-none`}
         />
+      </Field>
+
+      <Field
+        label="Transcript"
+        hint="Paste the spoken words. Export auto-captions from CapCut or YouTube Studio and tidy them up. This is the only text a search engine can read on the page, and it's what site search looks through — a thought without one is close to invisible."
+      >
+        <textarea
+          name="transcript"
+          rows={8}
+          defaultValue={film?.transcript ?? ""}
+          placeholder="Paste here. Blank lines separate paragraphs."
+          className={`${input} resize-y font-mono text-xs leading-relaxed`}
+        />
+      </Field>
+
+      <Field
+        label="Collections"
+        hint="What it's about. Pick one or two — this is how people find it."
+      >
+        <div className="flex flex-wrap gap-2">
+          {allCollections.map((c) => (
+            <label
+              key={c.slug}
+              className="cursor-pointer select-none rounded-full border border-line px-3.5 py-1.5 text-xs text-bone-dim transition-colors has-[:checked]:border-ember/50 has-[:checked]:bg-ember/10 has-[:checked]:text-ember hover:border-line-bright"
+            >
+              <input
+                type="checkbox"
+                name="collections"
+                value={c.slug}
+                defaultChecked={film?.collections.includes(c.slug)}
+                className="sr-only"
+              />
+              {c.name}
+            </label>
+          ))}
+        </div>
       </Field>
 
       <Field
@@ -156,20 +220,7 @@ function FilmForm({
         />
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Topic">
-          <select
-            name="topic"
-            defaultValue={film?.topic ?? "system"}
-            className={input}
-          >
-            {TOPICS.map((t) => (
-              <option key={t.id} value={t.id} className="bg-ink-2">
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Order">
           <input
             name="position"
@@ -188,15 +239,30 @@ function FilmForm({
         </Field>
       </div>
 
-      <label className="flex items-center gap-2.5 text-sm text-bone-dim">
-        <input
-          type="checkbox"
-          name="published"
-          defaultChecked={film?.published ?? true}
-          className="h-4 w-4 accent-[var(--color-ember)]"
-        />
-        Published
-      </label>
+      <div className="flex flex-wrap gap-6">
+        <label className="flex items-center gap-2.5 text-sm text-bone-dim">
+          <input
+            type="checkbox"
+            name="published"
+            defaultChecked={film?.published ?? true}
+            className="h-4 w-4 accent-[var(--color-ember)]"
+          />
+          Published
+        </label>
+
+        <label
+          className="flex items-center gap-2.5 text-sm text-bone-dim"
+          title="Core thoughts are candidates for the homepage — the strongest idea, not the newest."
+        >
+          <input
+            type="checkbox"
+            name="coreThought"
+            defaultChecked={film?.coreThought ?? false}
+            className="h-4 w-4 accent-[var(--color-ember)]"
+          />
+          Core thought
+        </label>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3 pt-2">
         <button

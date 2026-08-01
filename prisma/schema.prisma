@@ -131,15 +131,41 @@ model Video {
   // called "the-system", and neither should have to rename it.
   slug String
 
-  title       String
-  hook        String
+  title String
+  // One line under the title on a card. The reason to press play.
+  hook  String
+  // Two or three sentences on the thought page, under the video.
+  summary     String?
   description String?
+
+  /**
+   * The full spoken text.
+   *
+   * Carries more weight than its size suggests: it's the only indexable
+   * content on a page that is otherwise a video, so it's what search
+   * engines rank and what site search queries. It's also the substrate
+   * for the AI assistant later — chunk this, embed it, and answers can
+   * be grounded in what was actually said rather than invented.
+   */
+  transcript String?
 
   // The question the film raises and refuses to answer. Shown when
   // playback ends, and carried into the booking form as the topic.
-  // The hinge between watching and paying.
+  // The hinge between watching and booking.
   openQuestion String?
-  topic        String  @default("system")
+
+  /**
+   * A defining idea rather than a passing one. Surfaced on the homepage
+   * and badged in the library — the homepage shows the strongest thought,
+   * not the newest, so this is how "strongest" gets decided.
+   */
+  coreThought Boolean @default(false)
+
+  /**
+   * Who may watch. "public" for now; "members" and "private" exist so a
+   * future membership tier is a query filter rather than a migration.
+   */
+  visibility String @default("public")
 
   // Meaning depends on the active storage/video provider:
   // local -> filename under /public/media, r2 -> object key, mux -> playback ID
@@ -162,11 +188,37 @@ model Video {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  bookings Booking[]
+  bookings    Booking[]
+  collections Collection[]
 
   @@unique([userId, slug])
   @@index([published, approved, createdAt])
   @@index([userId, position])
+  @@index([coreThought])
+}
+
+/**
+ * A theme, not a folder.
+ *
+ * Content here is deliberately not browsed by date. Chronology implies a
+ * feed, and a feed implies keeping up — which is the opposite of what this
+ * is for. Ideas don't expire, so they're grouped by what they're about and
+ * a thought can sit in several at once.
+ *
+ * Global rather than per-creator: the taxonomy is the site's, so the same
+ * "Fear" means the same thing everywhere and collection pages stay
+ * coherent if this ever reopens to other people.
+ */
+model Collection {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  position    Int     @default(0)
+
+  videos Video[]
+
+  @@index([position])
 }
 
 // ─── OFFERS ───────────────────────────────────────────────────

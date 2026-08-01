@@ -3,73 +3,59 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Ambience } from "@/components/Ambience";
 import { Avatar, VerifiedTick } from "@/components/Avatar";
-import { FilmWall } from "@/components/FilmWall";
-import { FollowButton } from "@/components/FollowButton";
 import { Nav } from "@/components/Nav";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { Footer } from "@/components/sections";
 import { getCurrentUser } from "@/lib/auth";
-import { getCreatorByHandle, getCreatorFilms } from "@/lib/creators";
-import { db } from "@/lib/db";
+import {
+  getCollectionsWithCounts,
+  getCreatorByHandle,
+  getFeaturedThought,
+} from "@/lib/creators";
+import { config, soloMode } from "@/lib/config";
+import { watchTime } from "@/lib/collections";
+import { parseHandle } from "@/lib/handle";
 import { brand } from "@/lib/brand";
-import { spotsLeftThisWeek } from "@/lib/scheduling";
-import { formatPrice, possessiveFirstName } from "@/lib/types";
-import { soloMode } from "@/lib/config";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
-/**
- * Someone's universe.
- *
- * Lives at /@handle. The `@` is part of the URL segment rather than a
- * folder name — `@folder` is Next's parallel-route convention and would
- * never match a request. So this route validates the prefix itself and
- * 404s anything else, which also stops it swallowing every unknown path
- * on the site.
- */
+type Params = { params: Promise<{ handle: string }> };
 
-function parseHandle(raw: string): string | null {
-  const decoded = decodeURIComponent(raw);
-  if (!decoded.startsWith("@")) return null;
-
-  const handle = decoded.slice(1).toLowerCase();
-  return /^[a-z0-9_]{3,24}$/.test(handle) ? handle : null;
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ handle: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const handle = parseHandle((await params).handle);
   if (!handle) return { title: "Not found" };
 
   const creator = await getCreatorByHandle(handle);
   if (!creator) return { title: "Not found" };
 
-  const title = `${possessiveFirstName(creator.displayName)} Universe (@${creator.handle})`;
-  const description =
-    creator.tagline ??
-    creator.bio ??
-    `${creator.filmCount} films on ${brand.name}.`;
+  // Bare name only — the root layout's title template already appends the
+  // site name, and adding it here produces "X — EMU — EMU".
+  const title = soloMode
+    ? creator.displayName
+    : `${creator.displayName} (@${creator.handle})`;
+  const description = creator.tagline ?? brand.metaDescription;
+  const url = `${config.siteUrl}/@${creator.handle}`;
 
   return {
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      type: "profile",
-      url: `${brand.domain}/@${creator.handle}`,
-    },
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: "profile" },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
-export default async function UniversePage({
-  params,
-}: {
-  params: Promise<{ handle: string }>;
-}) {
+/**
+ * The front door.
+ *
+ * One portrait, one sentence, one thought, one way in. The temptation is
+ * to explain the site here; the brief is right that explaining kills it.
+ * Someone arriving from a bio link has about four seconds of patience and
+ * they didn't come for a value proposition — they came to see whether this
+ * person is worth listening to. So show them the strongest thing and get
+ * out of the way.
+ */
+export default async function UniversePage({ params }: Params) {
   const handle = parseHandle((await params).handle);
   if (!handle) notFound();
 
@@ -81,33 +67,10 @@ export default async function UniversePage({
 
   const isOwner = viewer?.id === creator.id;
 
-  const [films, offers, following] = await Promise.all([
-    // A stranger sees films only once the account is approved; the owner
-    // always sees their own, so they can check their work while waiting.
-    getCreatorFilms(creator.id, isOwner || creator.approved),
-    creator.canSell
-      ? db.sessionType.findMany({
-          where: { userId: creator.id, active: true },
-          orderBy: { position: "asc" },
-        })
-      : Promise.resolve([]),
-    viewer
-      ? db.follow
-          .findUnique({
-            where: {
-              followerId_followingId: {
-                followerId: viewer.id,
-                followingId: creator.id,
-              },
-            },
-          })
-          .then(Boolean)
-      : Promise.resolve(false),
+  const [featured, collections] = await Promise.all([
+    getFeaturedThought(creator.id),
+    getCollectionsWithCounts(creator.id),
   ]);
-
-  const spotsLeft = offers[0]
-    ? await spotsLeftThisWeek(creator.id, offers[0].maxPerWeek)
-    : 0;
 
   return (
     <>
@@ -116,174 +79,186 @@ export default async function UniversePage({
       <Nav user={viewer} solo={soloMode} />
 
       <main className="relative z-10">
-        {/* ── the header ── */}
-        <header className="px-5 pb-14 pt-28 sm:px-8 sm:pt-36">
-          <div className="mx-auto max-w-5xl">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-              <div className="flex items-center gap-5">
-                <Avatar
-                  src={creator.avatarUrl}
-                  name={creator.displayName}
-                  size={84}
-                  className="ring-1 ring-line-bright"
-                />
-                <div className="min-w-0">
-                  <h1 className="display flex items-center gap-2.5 text-[clamp(1.8rem,5vw,2.75rem)] leading-none">
-                    {creator.displayName}
-                    {creator.verified && <VerifiedTick size={18} />}
-                  </h1>
-                  <p className="mt-2.5 text-sm text-ember/85">
-                    {possessiveFirstName(creator.displayName)} Universe
-                  </p>
-                  <p className="mt-1 text-sm text-bone-faint">
-                    @{creator.handle}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {isOwner ? (
-                  <Link
-                    href="/studio"
-                    className="rounded-full border border-line-bright px-5 py-2.5 text-sm transition-colors hover:bg-bone/5"
-                  >
-                    Edit your universe
-                  </Link>
-                ) : (
-                  // Following needs an account, and in solo mode there are
-                  // no accounts to make — so it'd be a button to nowhere.
-                  !soloMode && (
-                    <FollowButton
-                      handle={creator.handle}
-                      initialFollowing={following}
-                      signedIn={Boolean(viewer)}
-                    />
-                  )
-                )}
-              </div>
+        {/* ── the one sentence ── */}
+        <section className="flex min-h-[92svh] flex-col justify-center px-5 pb-16 pt-32 sm:px-8">
+          <div className="mx-auto w-full max-w-5xl">
+            <div
+              className="flex items-center gap-4 opacity-0"
+              style={{ animation: "fade-up .8s var(--ease-out-expo) .1s both" }}
+            >
+              <Avatar
+                src={creator.avatarUrl}
+                name={creator.displayName}
+                size={44}
+                className="ring-1 ring-line-bright"
+              />
+              <span className="flex items-center gap-2 text-sm text-bone-dim">
+                {creator.displayName}
+                {creator.verified && <VerifiedTick />}
+              </span>
             </div>
 
+            <h1
+              className="display mt-10 max-w-[13ch] text-[clamp(3rem,11vw,8rem)] leading-[0.94] opacity-0"
+              style={{ animation: "fade-up 1s var(--ease-out-expo) .25s both" }}
+            >
+              Explore how <span className="text-gradient">I think</span>.
+            </h1>
+
             {creator.tagline && (
-              <p className="mt-8 max-w-2xl text-lg leading-relaxed text-bone-dim">
+              <p
+                className="mt-9 max-w-xl text-base leading-relaxed text-bone-dim opacity-0 sm:text-lg"
+                style={{ animation: "fade-up .9s var(--ease-out-expo) .5s both" }}
+              >
                 {creator.tagline}
               </p>
             )}
-            {creator.bio && (
-              <p className="mt-4 max-w-2xl whitespace-pre-line text-sm leading-relaxed text-bone-dim">
-                {creator.bio}
-              </p>
-            )}
 
-            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-bone-faint">
-              <span>
-                <span className="text-bone">{creator.filmCount}</span>{" "}
-                {creator.filmCount === 1 ? "film" : "films"}
-              </span>
-              {!soloMode && (
-                <span>
-                  <span className="text-bone">{creator.followerCount}</span>{" "}
-                  {creator.followerCount === 1 ? "follower" : "followers"}
-                </span>
-              )}
-              {creator.links.map((link) => (
-                <a
-                  key={link}
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="underline underline-offset-4 transition-colors hover:text-bone"
+            <div
+              className="mt-11 flex flex-wrap items-center gap-3 opacity-0"
+              style={{ animation: "fade-up .9s var(--ease-out-expo) .65s both" }}
+            >
+              <Link
+                href={`/@${handle}/thoughts`}
+                className="group inline-flex items-center gap-2.5 rounded-full bg-bone px-7 py-4 text-sm font-semibold text-ink transition-transform duration-300 hover:scale-[1.02]"
+              >
+                Explore thoughts
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  aria-hidden
+                  className="transition-transform duration-300 group-hover:translate-x-1"
                 >
-                  {link.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
-                </a>
-              ))}
+                  <path
+                    d="M1 7h12M7 1l6 6-6 6"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Link>
+
+              {isOwner && (
+                <Link
+                  href="/studio"
+                  className="rounded-full border border-line-bright px-6 py-4 text-sm transition-colors hover:bg-bone/5"
+                >
+                  Studio
+                </Link>
+              )}
             </div>
           </div>
-        </header>
+        </section>
 
-        {isOwner && !creator.approved && (
-          <div className="px-5 pb-10 sm:px-8">
-            <div className="mx-auto max-w-5xl rounded-2xl border border-ember/35 bg-ember/[0.07] px-5 py-4">
-              <p className="text-sm text-bone">
-                Only you can see this page like this.
-              </p>
-              <p className="mt-1.5 text-sm text-bone-dim">
-                Your films are private until an admin approves your account —
-                everyone else sees an empty page for now.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* ── the door ── */}
-        {creator.canSell && offers.length > 0 && (
-          <section className="px-5 pb-6 sm:px-8">
+        {/* ── one thought, the strongest ── */}
+        {featured && (
+          <section className="px-5 py-20 sm:px-8 sm:py-28">
             <div className="mx-auto max-w-5xl">
-              <div className="card card-sheen rounded-3xl p-7 sm:p-10">
-                <div className="flex flex-wrap items-start justify-between gap-6">
-                  <div className="max-w-lg">
-                    <span className="eyebrow">The door</span>
-                    <h2 className="display mt-3 text-[clamp(1.6rem,3.5vw,2.25rem)] leading-tight">
-                      Talk to {creator.displayName.split(" ")[0]}, one to one.
-                    </h2>
-                    <p className="mt-4 text-sm leading-relaxed text-bone-dim">
-                      {offers[0].tagline}
-                    </p>
-                    <p className="mt-4 text-xs text-bone-faint">
-                      {spotsLeft > 0
-                        ? `${spotsLeft} ${spotsLeft === 1 ? "slot" : "slots"} open this week.`
-                        : "Fully booked this week — the calendar opens into next."}
-                    </p>
+              <span className="eyebrow reveal">Start here</span>
+
+              <Link
+                href={`/@${handle}/thoughts/${featured.slug}`}
+                className="reveal group mt-6 block"
+              >
+                <div className="grid gap-8 sm:grid-cols-[minmax(0,200px)_1fr] sm:items-center sm:gap-12">
+                  <div
+                    className="relative overflow-hidden rounded-2xl border border-line bg-ink-3"
+                    style={{ aspectRatio: "9 / 16" }}
+                  >
+                    {featured.poster ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={featured.poster}
+                        alt=""
+                        className="h-full w-full object-cover transition-transform duration-[1.2s] ease-[var(--ease-out-expo)] group-hover:scale-105"
+                      />
+                    ) : (
+                      <div
+                        aria-hidden
+                        className="absolute inset-0"
+                        style={{
+                          background:
+                            "radial-gradient(120% 70% at 25% 15%, hsl(24 45% 30% / .9), transparent 62%), linear-gradient(165deg,#16161d,#0a0a0e)",
+                        }}
+                      />
+                    )}
+                    <span
+                      className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-bone/20 bg-ink/30 backdrop-blur-md transition-all duration-500 group-hover:border-ember/60 group-hover:bg-ember/20"
+                      aria-hidden
+                    >
+                      <svg width="15" height="17" viewBox="0 0 18 20" fill="none">
+                        <path
+                          d="M17 8.27a2 2 0 0 1 0 3.46L3 19.8a2 2 0 0 1-3-1.73V1.93A2 2 0 0 1 3 .2l14 8.07Z"
+                          className="fill-bone transition-colors duration-500 group-hover:fill-ember"
+                        />
+                      </svg>
+                    </span>
                   </div>
 
-                  <div className="flex flex-col items-start gap-4 sm:items-end">
-                    <div className="flex items-baseline gap-2">
-                      <span className="display text-4xl">
-                        {formatPrice(offers[0].priceCents, offers[0].currency)}
-                      </span>
-                      <span className="text-sm text-bone-faint">
-                        / {offers[0].durationMin} min
-                      </span>
-                    </div>
-                    <Link
-                      href={`/@${creator.handle}/book`}
-                      className="rounded-full bg-gradient-to-r from-gold to-ember px-7 py-4 text-sm font-semibold text-ink transition-transform hover:scale-[1.02]"
-                    >
-                      Book a talk
-                    </Link>
+                  <div>
+                    <h2 className="display text-[clamp(1.75rem,4.5vw,3rem)] leading-[1.05]">
+                      {featured.title}
+                    </h2>
+                    <p className="mt-5 max-w-xl text-base leading-relaxed text-bone-dim">
+                      {featured.summary ?? featured.hook}
+                    </p>
+                    <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-bone-faint">
+                      {featured.durationSec && (
+                        <span>{watchTime(featured.durationSec)} watch</span>
+                      )}
+                      {featured.readingMin > 0 && (
+                        <span>{featured.readingMin} min read</span>
+                      )}
+                    </p>
                   </div>
                 </div>
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* ── the way in ── */}
+        {collections.length > 0 && (
+          <section className="border-t border-line px-5 py-20 sm:px-8 sm:py-28">
+            <div className="mx-auto max-w-5xl">
+              <span className="eyebrow reveal">Collections</span>
+              <div className="reveal mt-8 flex flex-wrap gap-2.5">
+                {collections.map((c) => (
+                  <Link
+                    key={c.slug}
+                    href={`/@${handle}/thoughts?c=${c.slug}`}
+                    className="rounded-full border border-line px-5 py-2.5 text-sm text-bone-dim transition-colors duration-300 hover:border-line-bright hover:text-bone"
+                  >
+                    {c.name}
+                    <span className="ml-2 text-xs opacity-50">{c.count}</span>
+                  </Link>
+                ))}
               </div>
             </div>
           </section>
         )}
 
-        {/* ── the films ── */}
-        <section id="films" className="px-5 py-16 sm:px-8 sm:py-24">
-          <div className="mx-auto max-w-5xl">
-            {films.length === 0 ? (
-              <div className="card rounded-3xl p-10 text-center sm:p-16">
-                <h3 className="display text-2xl">
-                  {isOwner ? "Your universe is empty." : "Nothing here yet."}
-                </h3>
-                <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-bone-dim">
-                  {isOwner
-                    ? "Upload your first film and this page starts to look like somewhere worth being."
-                    : `${creator.displayName} hasn't published anything yet.`}
-                </p>
-                {isOwner && (
-                  <Link
-                    href="/studio/films"
-                    className="mt-8 inline-flex rounded-full bg-bone px-7 py-4 text-sm font-semibold text-ink transition-transform hover:scale-[1.02]"
-                  >
-                    Upload a film
-                  </Link>
-                )}
-              </div>
-            ) : (
-              <FilmWall films={films} />
-            )}
-          </div>
-        </section>
+        {/* Empty state, owner only. */}
+        {!featured && isOwner && (
+          <section className="px-5 pb-28 sm:px-8">
+            <div className="card mx-auto max-w-2xl rounded-3xl p-12 text-center">
+              <h2 className="display text-2xl">Nothing published yet.</h2>
+              <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-bone-dim">
+                Record something, upload it, and this page starts being worth
+                sending to people.
+              </p>
+              <Link
+                href="/studio/films"
+                className="mt-8 inline-flex rounded-full bg-bone px-7 py-4 text-sm font-semibold text-ink transition-transform hover:scale-[1.02]"
+              >
+                Upload the first one
+              </Link>
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />

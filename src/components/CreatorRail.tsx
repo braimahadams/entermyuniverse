@@ -46,7 +46,8 @@ export function CreatorRail({ creators }: { creators: CreatorView[] }) {
 
           <div className="mt-5 flex items-center gap-4 border-t border-line pt-4 text-xs text-bone-faint">
             <span>
-              {creator.filmCount} {creator.filmCount === 1 ? "film" : "films"}
+              {creator.thoughtCount}{" "}
+              {creator.thoughtCount === 1 ? "thought" : "thoughts"}
             </span>
             {creator.followerCount > 0 && (
               <span>

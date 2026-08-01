@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Ambience } from "@/components/Ambience";
 import { CreatorRail } from "@/components/CreatorRail";
-import { FilmWall } from "@/components/FilmWall";
+import { Masonry } from "@/components/Masonry";
+import { ThoughtCard } from "@/components/ThoughtCard";
 import { Hero } from "@/components/Hero";
 import { Nav } from "@/components/Nav";
 import { ScrollReveal } from "@/components/ScrollReveal";
@@ -59,7 +60,11 @@ export default async function HomePage() {
             {films.length === 0 ? (
               <EmptyFeed />
             ) : (
-              <FilmWall films={films} />
+              <Masonry>
+                {films.map((thought) => (
+                  <ThoughtCard key={thought.id} thought={thought} />
+                ))}
+              </Masonry>
             )}
           </div>
         </section>

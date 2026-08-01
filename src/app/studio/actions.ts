@@ -54,12 +54,21 @@ export async function saveFilm(formData: FormData) {
 
   if (!title || !sourceId) return;
 
+  // getAll: the collection checkboxes all share the name "collections",
+  // so a single get() would silently keep only the first one ticked.
+  const collectionSlugs = formData
+    .getAll("collections")
+    .map(String)
+    .filter(Boolean);
+
   const data = {
     title: title.slice(0, 160),
     hook: String(formData.get("hook") ?? "").trim().slice(0, 200),
+    summary: String(formData.get("summary") ?? "").trim() || null,
     description: String(formData.get("description") ?? "").trim() || null,
     openQuestion: String(formData.get("openQuestion") ?? "").trim() || null,
-    topic: String(formData.get("topic") ?? "system"),
+    transcript: String(formData.get("transcript") ?? "").trim() || null,
+    coreThought: formData.get("coreThought") === "on",
     sourceId,
     thumbnailUrl: String(formData.get("thumbnailUrl") ?? "").trim() || null,
     durationSec: Number(formData.get("durationSec")) || null,
@@ -68,10 +77,25 @@ export async function saveFilm(formData: FormData) {
     position: Number(formData.get("position")) || 0,
   };
 
+  const collectionRefs = collectionSlugs.map((slug) => ({ slug }));
+
   if (id) {
-    // updateMany, not update: the userId in the filter is what stops one
-    // creator editing another's film by posting their id.
-    await db.video.updateMany({ where: { id, userId: user.id }, data });
+    // Ownership is checked as its own query rather than folded into the
+    // update's `where`, because updateMany can't perform nested relation
+    // writes and `collections: { set }` is one. Same guarantee: nothing is
+    // written until this row is confirmed to belong to the caller.
+    const owned = await db.video.findFirst({
+      where: { id, userId: user.id },
+      select: { id: true },
+    });
+    if (!owned) return;
+
+    await db.video.update({
+      where: { id: owned.id },
+      // `set` replaces the whole list, which is what an edit form means:
+      // unticking a box has to actually remove that collection.
+      data: { ...data, collections: { set: collectionRefs } },
+    });
   } else {
     const base =
       String(formData.get("slug") ?? "").trim() ||
@@ -93,11 +117,21 @@ export async function saveFilm(formData: FormData) {
       slug = `${base}-${n}`;
     }
 
-    await db.video.create({ data: { ...data, slug, userId: user.id } });
+    await db.video.create({
+      // `connect` rather than `set`: on a new row there's nothing to
+      // replace, so `set` isn't a valid nested write here.
+      data: {
+        ...data,
+        slug,
+        userId: user.id,
+        collections: { connect: collectionRefs },
+      },
+    });
   }
 
   revalidatePath("/studio/films");
   revalidatePath(`/@${user.handle}`);
+  revalidatePath(`/@${user.handle}/thoughts`, "layout");
   revalidatePath("/");
 }
 
@@ -118,6 +152,7 @@ export async function deleteFilm(formData: FormData) {
 
   revalidatePath("/studio/films");
   revalidatePath(`/@${user.handle}`);
+  revalidatePath(`/@${user.handle}/thoughts`, "layout");
   revalidatePath("/");
 }
 

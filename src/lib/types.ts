@@ -6,31 +6,49 @@
  * see. These are the deliberately narrowed versions.
  */
 
-export type FilmView = {
+/** A collection, as it travels to the browser. */
+export type CollectionRef = {
+  slug: string;
+  name: string;
+};
+
+/**
+ * A thought.
+ *
+ * "Thought" rather than "video" deliberately: the video is the delivery
+ * format, the idea is the thing. That distinction is why there are
+ * transcripts, collections and no view counts.
+ */
+export type ThoughtView = {
   id: string;
   slug: string;
   title: string;
   hook: string;
+  summary: string | null;
   description: string | null;
-  /** The question the film refuses to answer. The hinge of the funnel. */
+  /** The question it refuses to answer. The hinge of the whole funnel. */
   openQuestion: string | null;
-  topic: string;
+  collections: CollectionRef[];
   durationSec: number | null;
+  /** Minutes to read the transcript. 0 when there isn't one yet. */
+  readingMin: number;
+  /** A defining idea rather than a passing one. */
+  coreThought: boolean;
   featured: boolean;
   /** Already resolved by the active video provider. */
   src: string;
   kind: "mp4" | "hls";
   poster: string | null;
   /**
-   * Who made it. Null on a creator's own universe page, where the whole
-   * page is already attributed and repeating it on every tile is noise.
+   * Who made it. Null on a creator's own pages, where the whole page is
+   * already attributed and repeating it on every tile is noise.
    */
   creator: {
     handle: string;
     displayName: string;
     avatarUrl: string | null;
     verified: boolean;
-    /** Drives whether the player offers a booking CTA at all. */
+    /** Drives whether a booking CTA appears at all. */
     canSell: boolean;
   } | null;
 };
@@ -59,9 +77,9 @@ export function formatPrice(cents: number, currency: string): string {
 }
 
 /**
- * "Braima's Universe", "Mara's Universe" — the possessive, personalized
- * form used on a creator's own page. First name only, matching the same
- * convention already used on the film player's end-card CTA.
+ * "Braima's Universe" — the possessive, personalized form used on a
+ * creator's own page. First name only, matching the convention used on
+ * the player's end-card CTA.
  */
 export function possessiveFirstName(displayName: string): string {
   const first = displayName.trim().split(/\s+/)[0] || displayName;
