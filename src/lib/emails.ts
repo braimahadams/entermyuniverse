@@ -98,7 +98,16 @@ export function guestConfirmation(data: BookingEmailData) {
   ].join("\n");
 
   return {
-    subject: `Confirmed — ${brand.name}, ${formatInZone(data.startsAt, data.timezone, { dateStyle: "medium", timeStyle: "short" })}`,
+    // The when carries the weight, not the brand: this email gets found
+    // again weeks later by searching an inbox, so the date and time should
+    // be readable without opening it.
+    subject: `Confirmed — ${formatInZone(data.startsAt, data.timezone, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+    })}`,
     html,
     text,
   };
