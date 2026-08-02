@@ -10,10 +10,14 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { Waitlist } from "@/components/Waitlist";
 import { Faq, Footer, Marquee, Process, SectionHead } from "@/components/sections";
 import { getCurrentUser } from "@/lib/auth";
-import { getFeaturedCreators, getFeed } from "@/lib/creators";
+import {
+  getFeaturedCreators,
+  getFeed,
+  resolvePrimaryHandle,
+} from "@/lib/creators";
 import { db } from "@/lib/db";
 import { brand } from "@/lib/brand";
-import { config, soloMode } from "@/lib/config";
+import { soloMode } from "@/lib/config";
 
 // The feed moves whenever anyone publishes, so this can't be cached hard.
 export const dynamic = "force-dynamic";
@@ -22,7 +26,16 @@ export default async function HomePage() {
   // One person's site: the front door is their page, not a directory of
   // strangers. Everything below is the platform build, kept intact and
   // unreachable until PRIMARY_HANDLE is cleared.
-  if (soloMode) redirect(`/@${config.primaryHandle}`);
+  //
+  // The target is resolved against the database rather than taken from the
+  // environment, so a mistyped handle degrades to the owner's page instead
+  // of redirecting every visitor into a 404.
+  if (soloMode) {
+    const primary = await resolvePrimaryHandle();
+    if (primary) redirect(`/@${primary}`);
+    // No accounts at all — fall through and render the platform homepage,
+    // which has its own empty state.
+  }
 
   const [user, films, creators, creatorCount] = await Promise.all([
     getCurrentUser(),

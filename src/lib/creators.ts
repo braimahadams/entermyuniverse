@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { resolveVideo } from "@/lib/providers/video";
 import { readingMinutes } from "@/lib/collections";
+import { config } from "@/lib/config";
 import type { ThoughtView } from "@/lib/types";
 
 /**
@@ -113,6 +114,40 @@ export function toThoughtView(row: ThoughtRow): ThoughtView {
         }
       : null,
   };
+}
+
+/**
+ * The handle the root should redirect to.
+ *
+ * Resolved against the database rather than trusted from the environment.
+ * PRIMARY_HANDLE is set by hand in a dashboard, and a single typo there
+ * would otherwise redirect every visitor to a 404 — the homepage would be
+ * down while every other page worked, which is a miserable thing to
+ * diagnose. So a value that doesn't match an account falls back to the
+ * owner account instead, and says so in the logs.
+ */
+export async function resolvePrimaryHandle(): Promise<string | null> {
+  if (config.primaryHandle) {
+    const exact = await db.user.findUnique({
+      where: { handle: config.primaryHandle },
+      select: { handle: true, suspended: true },
+    });
+    if (exact && !exact.suspended) return exact.handle;
+
+    console.warn(
+      `[config] PRIMARY_HANDLE="${config.primaryHandle}" matches no account — ` +
+        `falling back to the owner account. Fix the environment variable.`,
+    );
+  }
+
+  const fallback = await db.user.findFirst({
+    where: { suspended: false },
+    // The admin account is the site owner; oldest first as a tiebreak.
+    orderBy: [{ isAdmin: "desc" }, { createdAt: "asc" }],
+    select: { handle: true },
+  });
+
+  return fallback?.handle ?? null;
 }
 
 export async function getCreatorByHandle(
