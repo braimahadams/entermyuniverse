@@ -28,7 +28,8 @@ export default async function StudioLayout({
             </Link>
             <nav className="flex flex-wrap gap-1">
               <NavLink href="/studio">Overview</NavLink>
-              <NavLink href="/studio/films">Films</NavLink>
+              <NavLink href="/studio/write">Write</NavLink>
+              <NavLink href="/studio/replies">Replies</NavLink>
               {user.canSell && (
                 <>
                   <NavLink href="/studio/offers">Offers</NavLink>

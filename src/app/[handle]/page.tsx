@@ -4,62 +4,80 @@ import type { Metadata } from "next";
 import { Ambience } from "@/components/Ambience";
 import { Avatar, VerifiedTick } from "@/components/Avatar";
 import { Nav } from "@/components/Nav";
-import { ScrollReveal } from "@/components/ScrollReveal";
+import { PostCard, PostRef } from "@/components/PostCard";
+import { SearchBox } from "@/components/SearchBox";
 import { Footer } from "@/components/sections";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getCollectionsWithCounts,
   getCreatorByHandle,
-  getFeaturedThought,
+  getPinned,
+  getTimeline,
 } from "@/lib/creators";
 import { config, soloMode } from "@/lib/config";
-import { watchTime } from "@/lib/collections";
+import { dayKey, dayLabel, postDescription } from "@/lib/posts";
 import { parseHandle } from "@/lib/handle";
-import { brand } from "@/lib/brand";
+import type { PostView } from "@/lib/types";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
-type Params = { params: Promise<{ handle: string }> };
+type Params = {
+  params: Promise<{ handle: string }>;
+  searchParams: Promise<{ c?: string }>;
+};
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ handle: string }>;
+}): Promise<Metadata> {
   const handle = parseHandle((await params).handle);
   if (!handle) return { title: "Not found" };
 
   const creator = await getCreatorByHandle(handle);
   if (!creator) return { title: "Not found" };
 
-  // Bare name only — the root layout's title template already appends the
-  // site name, and adding it here produces "X — EMU — EMU".
+  // Bare name — the root layout's title template appends the site name,
+  // and adding it here produces "X — EMU — EMU".
   const title = soloMode
     ? creator.displayName
     : `${creator.displayName} (@${creator.handle})`;
-  const description = creator.tagline ?? brand.metaDescription;
+  const description =
+    creator.tagline ?? `Thoughts, written down as they arrive.`;
   const url = `${config.siteUrl}/@${creator.handle}`;
 
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      types: { "application/rss+xml": `${config.siteUrl}/feed.xml` },
+    },
     openGraph: { title, description, url, type: "profile" },
     twitter: { card: "summary_large_image", title, description },
   };
 }
 
 /**
- * The front door.
+ * The front door, which is the timeline.
  *
- * One portrait, one sentence, one thought, one way in. The temptation is
- * to explain the site here; the brief is right that explaining kills it.
- * Someone arriving from a bio link has about four seconds of patience and
- * they didn't come for a value proposition — they came to see whether this
- * person is worth listening to. So show them the strongest thing and get
- * out of the way.
+ * No hero, no pitch, no "explore how I think" — someone who followed a
+ * link with a name on it should land on the writing itself, not on a page
+ * asking them to be curious first. The header is three lines and then it
+ * gets out of the way.
+ *
+ * "Start here" sits above the timeline because reverse-chronology alone
+ * makes a stranger's first impression whatever happened to be written
+ * last night. Those are chosen by hand — there's no engagement data to
+ * rank by, and manufacturing some would turn this into the thing it's a
+ * reaction against.
  */
-export default async function UniversePage({ params }: Params) {
+export default async function UniversePage({ params, searchParams }: Params) {
   const handle = parseHandle((await params).handle);
   if (!handle) notFound();
 
-  const [viewer, creator] = await Promise.all([
+  const [{ c: activeCollection }, viewer, creator] = await Promise.all([
+    searchParams,
     getCurrentUser(),
     getCreatorByHandle(handle),
   ]);
@@ -67,201 +85,245 @@ export default async function UniversePage({ params }: Params) {
 
   const isOwner = viewer?.id === creator.id;
 
-  const [featured, collections] = await Promise.all([
-    getFeaturedThought(creator.id),
+  const [timeline, pinned, collections] = await Promise.all([
+    getTimeline(creator.id, { collection: activeCollection, limit: 60 }),
+    // Pinned posts are the front door only — pointless when the reader has
+    // already filtered to a collection.
+    activeCollection ? Promise.resolve([]) : getPinned(creator.id, 3),
     getCollectionsWithCounts(creator.id),
   ]);
+
+  /**
+   * Days are grouped in the *author's* timezone, not the reader's.
+   *
+   * A timestamp here means "when this occurred to him" — a thought written
+   * at 2am is a 2am thought, and re-basing that to a reader in Los Angeles
+   * would destroy the only context the time carries. It also keeps the
+   * grouping stable for everyone, so a shared link reads the same to both
+   * people, and it avoids a server/client hydration mismatch since the
+   * server can't know an anonymous visitor's zone anyway.
+   */
+  const zone = creator.timezone;
+  const days = groupByDay(timeline, zone);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: creator.displayName,
+    url: `${config.siteUrl}/@${creator.handle}`,
+    description: creator.tagline ?? undefined,
+    author: { "@type": "Person", name: creator.displayName },
+    blogPost: timeline.slice(0, 10).map((p) => ({
+      "@type": "BlogPosting",
+      headline: p.title ?? postDescription(p).slice(0, 110),
+      datePublished: p.publishedAt,
+      url: `${config.siteUrl}/@${creator.handle}/thoughts/${p.slug}`,
+    })),
+  };
 
   return (
     <>
       <Ambience />
-      <ScrollReveal />
       <Nav user={viewer} solo={soloMode} />
 
-      <main className="relative z-10">
-        {/* ── the one sentence ── */}
-        <section className="flex min-h-[92svh] flex-col justify-center px-5 pb-16 pt-32 sm:px-8">
-          <div className="mx-auto w-full max-w-5xl">
-            <div
-              className="flex items-center gap-4 opacity-0"
-              style={{ animation: "fade-up .8s var(--ease-out-expo) .1s both" }}
-            >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <main className="relative z-10 px-5 pb-24 pt-24 sm:px-8 sm:pt-32">
+        <div className="mx-auto max-w-2xl">
+          {/* ── who ── */}
+          <header
+            className="opacity-0"
+            style={{ animation: "fade-up .7s var(--ease-out-expo) .05s both" }}
+          >
+            <div className="flex items-center gap-4">
               <Avatar
                 src={creator.avatarUrl}
                 name={creator.displayName}
-                size={44}
+                size={52}
                 className="ring-1 ring-line-bright"
               />
-              <span className="flex items-center gap-2 text-sm text-bone-dim">
-                {creator.displayName}
-                {creator.verified && <VerifiedTick />}
-              </span>
-            </div>
-
-            <h1
-              className="display mt-10 max-w-[13ch] text-[clamp(3rem,11vw,8rem)] leading-[0.94] opacity-0"
-              style={{ animation: "fade-up 1s var(--ease-out-expo) .25s both" }}
-            >
-              Explore how <span className="text-gradient">I think</span>.
-            </h1>
-
-            {creator.tagline && (
-              <p
-                className="mt-9 max-w-xl text-base leading-relaxed text-bone-dim opacity-0 sm:text-lg"
-                style={{ animation: "fade-up .9s var(--ease-out-expo) .5s both" }}
-              >
-                {creator.tagline}
-              </p>
-            )}
-
-            <div
-              className="mt-11 flex flex-wrap items-center gap-3 opacity-0"
-              style={{ animation: "fade-up .9s var(--ease-out-expo) .65s both" }}
-            >
-              <Link
-                href={`/@${handle}/thoughts`}
-                className="group inline-flex items-center gap-2.5 rounded-full bg-bone px-7 py-4 text-sm font-semibold text-ink transition-transform duration-300 hover:scale-[1.02]"
-              >
-                Explore thoughts
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  aria-hidden
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                >
-                  <path
-                    d="M1 7h12M7 1l6 6-6 6"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </Link>
+              <div className="min-w-0">
+                <h1 className="display flex items-center gap-2 text-2xl leading-none sm:text-3xl">
+                  {creator.displayName}
+                  {creator.verified && <VerifiedTick size={15} />}
+                </h1>
+                <p className="mt-1.5 text-sm text-bone-faint">
+                  @{creator.handle}
+                </p>
+              </div>
 
               {isOwner && (
                 <Link
                   href="/studio"
-                  className="rounded-full border border-line-bright px-6 py-4 text-sm transition-colors hover:bg-bone/5"
+                  className="ml-auto shrink-0 rounded-full border border-line-bright px-4 py-2 text-xs transition-colors hover:bg-bone/5"
                 >
-                  Studio
+                  Write
                 </Link>
               )}
             </div>
+
+            {creator.tagline && (
+              <p className="mt-6 text-[1.0625rem] leading-relaxed text-bone-dim">
+                {creator.tagline}
+              </p>
+            )}
+          </header>
+
+          <div
+            className="mt-8 opacity-0"
+            style={{ animation: "fade-up .7s var(--ease-out-expo) .18s both" }}
+          >
+            <SearchBox handle={handle} />
           </div>
-        </section>
 
-        {/* ── one thought, the strongest ── */}
-        {featured && (
-          <section className="px-5 py-20 sm:px-8 sm:py-28">
-            <div className="mx-auto max-w-5xl">
-              <span className="eyebrow reveal">Start here</span>
+          {/* ── collections ── */}
+          {collections.length > 0 && (
+            <nav
+              aria-label="Collections"
+              className="-mx-5 mt-6 flex gap-2 overflow-x-auto px-5 pb-2 sm:mx-0 sm:flex-wrap sm:px-0"
+            >
+              <Chip
+                href={`/@${handle}`}
+                label="Everything"
+                active={!activeCollection}
+              />
+              {collections.map((c) => (
+                <Chip
+                  key={c.slug}
+                  href={`/@${handle}?c=${c.slug}`}
+                  label={c.name}
+                  count={c.count}
+                  active={c.slug === activeCollection}
+                />
+              ))}
+            </nav>
+          )}
 
-              <Link
-                href={`/@${handle}/thoughts/${featured.slug}`}
-                className="reveal group mt-6 block"
+          {/* ── start here ── */}
+          {pinned.length > 0 && (
+            <section className="mt-12" aria-labelledby="start-here">
+              <h2
+                id="start-here"
+                className="text-[11px] uppercase tracking-[0.2em] text-bone-faint"
               >
-                <div className="grid gap-8 sm:grid-cols-[minmax(0,200px)_1fr] sm:items-center sm:gap-12">
-                  <div
-                    className="relative overflow-hidden rounded-2xl border border-line bg-ink-3"
-                    style={{ aspectRatio: "9 / 16" }}
-                  >
-                    {featured.poster ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={featured.poster}
-                        alt=""
-                        className="h-full w-full object-cover transition-transform duration-[1.2s] ease-[var(--ease-out-expo)] group-hover:scale-105"
-                      />
-                    ) : (
-                      <div
-                        aria-hidden
-                        className="absolute inset-0"
-                        style={{
-                          background:
-                            "radial-gradient(120% 70% at 25% 15%, hsl(24 45% 30% / .9), transparent 62%), linear-gradient(165deg,#16161d,#0a0a0e)",
-                        }}
-                      />
-                    )}
-                    <span
-                      className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-bone/20 bg-ink/30 backdrop-blur-md transition-all duration-500 group-hover:border-ember/60 group-hover:bg-ember/20"
-                      aria-hidden
-                    >
-                      <svg width="15" height="17" viewBox="0 0 18 20" fill="none">
-                        <path
-                          d="M17 8.27a2 2 0 0 1 0 3.46L3 19.8a2 2 0 0 1-3-1.73V1.93A2 2 0 0 1 3 .2l14 8.07Z"
-                          className="fill-bone transition-colors duration-500 group-hover:fill-ember"
-                        />
-                      </svg>
-                    </span>
-                  </div>
-
-                  <div>
-                    <h2 className="display text-[clamp(1.75rem,4.5vw,3rem)] leading-[1.05]">
-                      {featured.title}
-                    </h2>
-                    <p className="mt-5 max-w-xl text-base leading-relaxed text-bone-dim">
-                      {featured.summary ?? featured.hook}
-                    </p>
-                    <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-bone-faint">
-                      {featured.durationSec && (
-                        <span>{watchTime(featured.durationSec)} watch</span>
-                      )}
-                      {featured.readingMin > 0 && (
-                        <span>{featured.readingMin} min read</span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {/* ── the way in ── */}
-        {collections.length > 0 && (
-          <section className="border-t border-line px-5 py-20 sm:px-8 sm:py-28">
-            <div className="mx-auto max-w-5xl">
-              <span className="eyebrow reveal">Collections</span>
-              <div className="reveal mt-8 flex flex-wrap gap-2.5">
-                {collections.map((c) => (
-                  <Link
-                    key={c.slug}
-                    href={`/@${handle}/thoughts?c=${c.slug}`}
-                    className="rounded-full border border-line px-5 py-2.5 text-sm text-bone-dim transition-colors duration-300 hover:border-line-bright hover:text-bone"
-                  >
-                    {c.name}
-                    <span className="ml-2 text-xs opacity-50">{c.count}</span>
-                  </Link>
+                Start here
+              </h2>
+              <div className="mt-4 grid gap-3">
+                {pinned.map((post) => (
+                  <PostRef key={post.id} post={post} />
                 ))}
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          )}
 
-        {/* Empty state, owner only. */}
-        {!featured && isOwner && (
-          <section className="px-5 pb-28 sm:px-8">
-            <div className="card mx-auto max-w-2xl rounded-3xl p-12 text-center">
-              <h2 className="display text-2xl">Nothing published yet.</h2>
-              <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-bone-dim">
-                Record something, upload it, and this page starts being worth
-                sending to people.
-              </p>
-              <Link
-                href="/studio/films"
-                className="mt-8 inline-flex rounded-full bg-bone px-7 py-4 text-sm font-semibold text-ink transition-transform hover:scale-[1.02]"
-              >
-                Upload the first one
-              </Link>
-            </div>
+          {/* ── the timeline ── */}
+          <section className="mt-14">
+            {timeline.length === 0 ? (
+              <EmptyState isOwner={isOwner} filtered={Boolean(activeCollection)} />
+            ) : (
+              days.map(({ key, label, posts }) => (
+                <div key={key} className="mb-4">
+                  <h2 className="sticky top-16 z-20 -mx-5 mb-6 bg-ink/80 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-bone-faint backdrop-blur-md sm:top-20 sm:mx-0 sm:px-0">
+                    {label}
+                  </h2>
+                  {posts.map((post) => (
+                    <PostCard key={post.id} post={post} timeZone={zone} />
+                  ))}
+                </div>
+              ))
+            )}
           </section>
-        )}
+        </div>
       </main>
 
       <Footer />
     </>
+  );
+}
+
+function groupByDay(posts: PostView[], timeZone: string) {
+  const groups: { key: string; label: string; posts: PostView[] }[] = [];
+
+  for (const post of posts) {
+    const at = new Date(post.publishedAt);
+    const key = dayKey(at, timeZone);
+    const last = groups[groups.length - 1];
+
+    if (last?.key === key) {
+      last.posts.push(post);
+    } else {
+      groups.push({ key, label: dayLabel(at, timeZone), posts: [post] });
+    }
+  }
+
+  return groups;
+}
+
+function Chip({
+  href,
+  label,
+  count,
+  active,
+}: {
+  href: string;
+  label: string;
+  count?: number;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-300 ${
+        active
+          ? "border-ember/50 bg-ember/10 text-ember"
+          : "border-line text-bone-dim hover:border-line-bright hover:text-bone"
+      }`}
+    >
+      {label}
+      {count !== undefined && (
+        <span className="ml-1.5 opacity-50">{count}</span>
+      )}
+    </Link>
+  );
+}
+
+function EmptyState({
+  isOwner,
+  filtered,
+}: {
+  isOwner: boolean;
+  filtered: boolean;
+}) {
+  if (filtered) {
+    return (
+      <p className="py-16 text-center text-sm text-bone-faint">
+        Nothing in this one yet.
+      </p>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-line px-8 py-16 text-center">
+      <p className="display text-2xl">
+        {isOwner ? "Nothing written yet." : "Nothing here yet."}
+      </p>
+      <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-bone-dim">
+        {isOwner
+          ? "Whatever's in your head right now — that's the first one."
+          : "Come back in a day or two."}
+      </p>
+      {isOwner && (
+        <Link
+          href="/studio"
+          className="mt-8 inline-flex rounded-full bg-bone px-6 py-3.5 text-sm font-semibold text-ink transition-transform hover:scale-[1.02]"
+        >
+          Write the first one
+        </Link>
+      )}
+    </div>
   );
 }

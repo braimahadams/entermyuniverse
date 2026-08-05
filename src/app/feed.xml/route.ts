@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { PUBLIC_FILTER } from "@/lib/creators";
 import { config, soloMode } from "@/lib/config";
 import { brand } from "@/lib/brand";
+import { postDescription, postTitle } from "@/lib/posts";
 
 /**
  * RSS.
@@ -22,12 +23,12 @@ function escapeXml(text: string): string {
 }
 
 export async function GET() {
-  const thoughts = await db.video.findMany({
+  const thoughts = await db.post.findMany({
     where: {
       ...PUBLIC_FILTER,
       ...(soloMode ? { user: { handle: config.primaryHandle } } : {}),
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { publishedAt: "desc" },
     take: 50,
     include: { user: { select: { handle: true, displayName: true } } },
   });
@@ -36,11 +37,11 @@ export async function GET() {
     .map((t) => {
       const url = `${config.siteUrl}/@${t.user.handle}/thoughts/${t.slug}`;
       return `    <item>
-      <title>${escapeXml(t.title)}</title>
+      <title>${escapeXml(postTitle(t))}</title>
       <link>${url}</link>
       <guid isPermaLink="true">${url}</guid>
-      <pubDate>${t.createdAt.toUTCString()}</pubDate>
-      <description>${escapeXml(t.summary ?? t.hook)}</description>
+      <pubDate>${t.publishedAt.toUTCString()}</pubDate>
+      <description>${escapeXml(postDescription(t))}</description>
     </item>`;
     })
     .join("\n");

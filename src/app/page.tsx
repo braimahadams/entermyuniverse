@@ -2,8 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Ambience } from "@/components/Ambience";
 import { CreatorRail } from "@/components/CreatorRail";
-import { Masonry } from "@/components/Masonry";
-import { ThoughtCard } from "@/components/ThoughtCard";
+import { PostCard } from "@/components/PostCard";
 import { Hero } from "@/components/Hero";
 import { Nav } from "@/components/Nav";
 import { ScrollReveal } from "@/components/ScrollReveal";
@@ -73,11 +72,16 @@ export default async function HomePage() {
             {films.length === 0 ? (
               <EmptyFeed />
             ) : (
-              <Masonry>
-                {films.map((thought) => (
-                  <ThoughtCard key={thought.id} thought={thought} />
+              <div className="mx-auto max-w-2xl">
+                {films.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    timeZone="UTC"
+                    showAuthor
+                  />
                 ))}
-              </Masonry>
+              </div>
             )}
           </div>
         </section>

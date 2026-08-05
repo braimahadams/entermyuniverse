@@ -5,16 +5,175 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { removeStored } from "@/lib/providers/storage";
 import { safeTimeZone } from "@/lib/time";
+import { slugify, postTitle } from "@/lib/posts";
 import { BOOKING_STATUS } from "@/lib/constants";
 
 /**
  * Studio mutations.
  *
- * Every one of these re-derives the current user and scopes the query by
- * their id. Server actions are reachable by anyone who can guess the
- * generated action id, so a row is only ever touched via a `where` that
- * includes `userId` — never by trusting an id that arrived in the form.
+ * Every one re-derives the current user and scopes by their id. Server
+ * actions are reachable by anyone who can guess the generated action id,
+ * so a row is only ever touched after confirming it belongs to the caller
+ * — never by trusting an id that arrived in a form.
  */
+
+/* ── writing ───────────────────────────────────────────────── */
+
+/** Refresh everywhere a post can appear. */
+function revalidatePost(handle: string) {
+  revalidatePath("/studio");
+  revalidatePath(`/@${handle}`);
+  revalidatePath(`/@${handle}/thoughts`, "layout");
+  revalidatePath("/");
+}
+
+export async function savePost(formData: FormData) {
+  const user = await requireUser();
+
+  const id = String(formData.get("id") ?? "");
+  const body = String(formData.get("body") ?? "").trim();
+
+  // The body is the post. Everything else is optional decoration.
+  if (!body) return;
+
+  const title = String(formData.get("title") ?? "").trim() || null;
+
+  // getAll: the collection checkboxes share a name, so a single get()
+  // would silently keep only the first one ticked.
+  const collectionRefs = formData
+    .getAll("collections")
+    .map(String)
+    .filter(Boolean)
+    .map((slug) => ({ slug }));
+
+  const sourceId = String(formData.get("sourceId") ?? "").trim() || null;
+
+  const data = {
+    body,
+    title,
+    openQuestion: String(formData.get("openQuestion") ?? "").trim() || null,
+    pinned: formData.get("pinned") === "on",
+    published: formData.get("published") !== "off",
+    sourceId,
+    // Video metadata is meaningless without a video — clear it together so
+    // removing an attachment can't leave a stale duration behind.
+    thumbnailUrl: sourceId
+      ? String(formData.get("thumbnailUrl") ?? "").trim() || null
+      : null,
+    durationSec: sourceId ? Number(formData.get("durationSec")) || null : null,
+    sizeBytes: sourceId ? Number(formData.get("sizeBytes")) || null : null,
+    transcript: String(formData.get("transcript") ?? "").trim() || null,
+  };
+
+  if (id) {
+    const owned = await db.post.findFirst({
+      where: { id, userId: user.id },
+      select: { id: true },
+    });
+    if (!owned) return;
+
+    await db.post.update({
+      where: { id: owned.id },
+      // `set` replaces the whole list, which is what an edit means:
+      // unticking a box has to actually remove that collection.
+      data: { ...data, collections: { set: collectionRefs } },
+    });
+  } else {
+    // Slug comes from the title when there is one, otherwise the opening
+    // words — so a URL reads like the thought rather than like an id.
+    const base = slugify(title ?? postTitle({ title: null, body }));
+
+    let slug = base;
+    for (let n = 2; n < 60; n++) {
+      const taken = await db.post.findUnique({
+        where: { userId_slug: { userId: user.id, slug } },
+        select: { id: true },
+      });
+      if (!taken) break;
+      slug = `${base}-${n}`;
+    }
+
+    await db.post.create({
+      // `connect` rather than `set`: on a new row there's nothing to
+      // replace, so `set` isn't a valid nested write here.
+      data: {
+        ...data,
+        slug,
+        userId: user.id,
+        collections: { connect: collectionRefs },
+      },
+    });
+  }
+
+  revalidatePost(user.handle);
+}
+
+export async function deletePost(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const post = await db.post.findFirst({
+    where: { id, userId: user.id },
+    select: { id: true, sourceId: true },
+  });
+  if (!post) return;
+
+  await db.post.delete({ where: { id: post.id } });
+  // Best-effort: never leave the row behind because a file wouldn't delete.
+  if (post.sourceId) await removeStored(post.sourceId);
+
+  revalidatePost(user.handle);
+}
+
+/** Pin/unpin from the timeline without opening the editor. */
+export async function togglePinned(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const post = await db.post.findFirst({
+    where: { id, userId: user.id },
+    select: { id: true, pinned: true },
+  });
+  if (!post) return;
+
+  await db.post.update({
+    where: { id: post.id },
+    data: { pinned: !post.pinned },
+  });
+
+  revalidatePost(user.handle);
+}
+
+/* ── replies ───────────────────────────────────────────────── */
+
+export async function moderateComment(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  const action = String(formData.get("action") ?? "");
+  if (!id) return;
+
+  // Scoped through the post: you can only moderate replies to your own
+  // writing, however the id got here.
+  const comment = await db.comment.findFirst({
+    where: { id, post: { userId: user.id } },
+    select: { id: true, post: { select: { slug: true } } },
+  });
+  if (!comment) return;
+
+  if (action === "delete") {
+    await db.comment.delete({ where: { id: comment.id } });
+  } else {
+    await db.comment.update({
+      where: { id: comment.id },
+      data: { approved: action === "approve" },
+    });
+  }
+
+  revalidatePath("/studio/replies");
+  revalidatePath(`/@${user.handle}/thoughts/${comment.post.slug}`);
+}
 
 /* ── profile ───────────────────────────────────────────────── */
 
@@ -41,119 +200,6 @@ export async function saveProfile(formData: FormData) {
 
   revalidatePath("/studio/profile");
   revalidatePath(`/@${user.handle}`);
-}
-
-/* ── films ─────────────────────────────────────────────────── */
-
-export async function saveFilm(formData: FormData) {
-  const user = await requireUser();
-
-  const id = String(formData.get("id") ?? "");
-  const title = String(formData.get("title") ?? "").trim();
-  const sourceId = String(formData.get("sourceId") ?? "").trim();
-
-  if (!title || !sourceId) return;
-
-  // getAll: the collection checkboxes all share the name "collections",
-  // so a single get() would silently keep only the first one ticked.
-  const collectionSlugs = formData
-    .getAll("collections")
-    .map(String)
-    .filter(Boolean);
-
-  const data = {
-    title: title.slice(0, 160),
-    hook: String(formData.get("hook") ?? "").trim().slice(0, 200),
-    summary: String(formData.get("summary") ?? "").trim() || null,
-    description: String(formData.get("description") ?? "").trim() || null,
-    openQuestion: String(formData.get("openQuestion") ?? "").trim() || null,
-    transcript: String(formData.get("transcript") ?? "").trim() || null,
-    coreThought: formData.get("coreThought") === "on",
-    sourceId,
-    thumbnailUrl: String(formData.get("thumbnailUrl") ?? "").trim() || null,
-    durationSec: Number(formData.get("durationSec")) || null,
-    sizeBytes: Number(formData.get("sizeBytes")) || null,
-    published: formData.get("published") === "on",
-    position: Number(formData.get("position")) || 0,
-  };
-
-  const collectionRefs = collectionSlugs.map((slug) => ({ slug }));
-
-  if (id) {
-    // Ownership is checked as its own query rather than folded into the
-    // update's `where`, because updateMany can't perform nested relation
-    // writes and `collections: { set }` is one. Same guarantee: nothing is
-    // written until this row is confirmed to belong to the caller.
-    const owned = await db.video.findFirst({
-      where: { id, userId: user.id },
-      select: { id: true },
-    });
-    if (!owned) return;
-
-    await db.video.update({
-      where: { id: owned.id },
-      // `set` replaces the whole list, which is what an edit form means:
-      // unticking a box has to actually remove that collection.
-      data: { ...data, collections: { set: collectionRefs } },
-    });
-  } else {
-    const base =
-      String(formData.get("slug") ?? "").trim() ||
-      title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")
-        .slice(0, 60) ||
-      "film";
-
-    // Slugs are unique per creator, so only collide within your own work.
-    let slug = base;
-    for (let n = 2; n < 40; n++) {
-      const taken = await db.video.findUnique({
-        where: { userId_slug: { userId: user.id, slug } },
-        select: { id: true },
-      });
-      if (!taken) break;
-      slug = `${base}-${n}`;
-    }
-
-    await db.video.create({
-      // `connect` rather than `set`: on a new row there's nothing to
-      // replace, so `set` isn't a valid nested write here.
-      data: {
-        ...data,
-        slug,
-        userId: user.id,
-        collections: { connect: collectionRefs },
-      },
-    });
-  }
-
-  revalidatePath("/studio/films");
-  revalidatePath(`/@${user.handle}`);
-  revalidatePath(`/@${user.handle}/thoughts`, "layout");
-  revalidatePath("/");
-}
-
-export async function deleteFilm(formData: FormData) {
-  const user = await requireUser();
-  const id = String(formData.get("id") ?? "");
-  if (!id) return;
-
-  const film = await db.video.findFirst({
-    where: { id, userId: user.id },
-    select: { id: true, sourceId: true },
-  });
-  if (!film) return;
-
-  await db.video.delete({ where: { id: film.id } });
-  // Best-effort: never leave the row behind because a file wouldn't delete.
-  await removeStored(film.sourceId);
-
-  revalidatePath("/studio/films");
-  revalidatePath(`/@${user.handle}`);
-  revalidatePath(`/@${user.handle}/thoughts`, "layout");
-  revalidatePath("/");
 }
 
 /* ── offers ────────────────────────────────────────────────── */
@@ -202,12 +248,7 @@ export async function saveOffer(formData: FormData) {
   if (id) {
     await db.sessionType.updateMany({ where: { id, userId: user.id }, data });
   } else {
-    const base =
-      name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")
-        .slice(0, 40) || "session";
+    const base = slugify(name) || "session";
 
     let slug = base;
     for (let n = 2; n < 40; n++) {

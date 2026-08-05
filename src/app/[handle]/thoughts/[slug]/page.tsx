@@ -2,26 +2,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Ambience } from "@/components/Ambience";
+import { Comments } from "@/components/Comments";
 import { Nav } from "@/components/Nav";
-import { ScrollReveal } from "@/components/ScrollReveal";
-import { Footer } from "@/components/sections";
-import { ThoughtPlayer } from "@/components/ThoughtPlayer";
+import { PostRef } from "@/components/PostCard";
 import { ThoughtActions } from "@/components/ThoughtActions";
-import { ThoughtCard } from "@/components/ThoughtCard";
+import { ThoughtPlayer } from "@/components/ThoughtPlayer";
 import { Transcript } from "@/components/Transcript";
+import { Footer } from "@/components/sections";
 import { getCurrentUser } from "@/lib/auth";
-import {
-  getCreatorByHandle,
-  getRelatedThoughts,
-  getThought,
-} from "@/lib/creators";
+import { getCreatorByHandle, getPost, getRelatedPosts } from "@/lib/creators";
 import { db } from "@/lib/db";
 import { config, soloMode } from "@/lib/config";
-import { watchTime } from "@/lib/collections";
+import { dayLabel, postDescription, postTitle, timeLabel } from "@/lib/posts";
 import { parseHandle } from "@/lib/handle";
 import { formatPrice } from "@/lib/types";
+import type { CommentView } from "@/lib/types";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 type Params = { params: Promise<{ handle: string; slug: string }> };
 
@@ -30,88 +27,121 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const handle = parseHandle(raw);
   if (!handle) return { title: "Not found" };
 
-  const thought = await getThought(handle, slug);
-  if (!thought) return { title: "Not found" };
+  const post = await getPost(handle, slug);
+  if (!post) return { title: "Not found" };
 
   const url = `${config.siteUrl}/@${handle}/thoughts/${slug}`;
-  // The summary is written for humans; the hook is the fallback because a
-  // truncated transcript makes a terrible search-result snippet.
-  const description = thought.summary ?? thought.hook;
+  const title = postTitle(post);
+  const description = postDescription(post);
 
   return {
-    title: thought.title,
+    title,
     description,
     alternates: { canonical: url },
     openGraph: {
-      title: thought.title,
+      title,
       description,
       url,
-      type: "video.other",
-      images: thought.poster ? [{ url: thought.poster }] : undefined,
+      type: "article",
+      publishedTime: post.publishedAt,
+      images: post.video?.poster ? [{ url: post.video.poster }] : undefined,
     },
     twitter: {
-      card: "summary_large_image",
-      title: thought.title,
+      card: post.video?.poster ? "summary_large_image" : "summary",
+      title,
       description,
-      images: thought.poster ? [thought.poster] : undefined,
     },
   };
 }
 
-export default async function ThoughtPage({ params }: Params) {
+/**
+ * One thought.
+ *
+ * When there's a video it goes first, above the writing — you watch, then
+ * you read what it was about. When there isn't, which is most of the time,
+ * the page is simply the text at a comfortable measure.
+ */
+export default async function PostPage({ params }: Params) {
   const { handle: raw, slug } = await params;
   const handle = parseHandle(raw);
   if (!handle) notFound();
 
-  const [viewer, creator, thought] = await Promise.all([
+  const [viewer, creator, post] = await Promise.all([
     getCurrentUser(),
     getCreatorByHandle(handle),
-    getThought(handle, slug),
+    getPost(handle, slug),
   ]);
 
-  if (!creator || !thought) notFound();
+  if (!creator || !post) notFound();
 
-  const [related, offer] = await Promise.all([
-    getRelatedThoughts(thought, creator.id, 3),
+  const [related, offer, commentRows] = await Promise.all([
+    getRelatedPosts(post, creator.id, 3),
     creator.canSell
       ? db.sessionType.findFirst({
           where: { userId: creator.id, active: true },
           orderBy: { position: "asc" },
         })
       : Promise.resolve(null),
+    db.comment.findMany({
+      where: { postId: post.id, approved: true },
+      orderBy: { createdAt: "asc" },
+      include: {
+        citedPost: {
+          select: { slug: true, title: true, body: true, user: { select: { handle: true } } },
+        },
+      },
+    }),
   ]);
 
-  const url = `${config.siteUrl}/@${handle}/thoughts/${slug}`;
+  const comments: CommentView[] = commentRows.map((c) => ({
+    id: c.id,
+    authorName: c.authorName,
+    body: c.body,
+    createdAt: c.createdAt.toISOString(),
+    citedPost: c.citedPost
+      ? {
+          slug: c.citedPost.slug,
+          title: postTitle(c.citedPost),
+          handle: c.citedPost.user.handle,
+        }
+      : null,
+  }));
 
-  /**
-   * Structured data. Lets Google show this as a video result with a
-   * duration and thumbnail rather than a bare blue link — which is most
-   * of the value of having real pages at all.
-   */
+  const url = `${config.siteUrl}/@${handle}/thoughts/${slug}`;
+  const at = new Date(post.publishedAt);
+  const title = postTitle(post);
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "VideoObject",
-    name: thought.title,
-    description: thought.summary ?? thought.hook,
-    thumbnailUrl: thought.poster ? [thought.poster] : undefined,
-    contentUrl: thought.src.startsWith("http")
-      ? thought.src
-      : `${config.siteUrl}${thought.src}`,
-    duration: thought.durationSec
-      ? `PT${Math.floor(thought.durationSec / 60)}M${thought.durationSec % 60}S`
-      : undefined,
-    transcript: thought.transcript ?? undefined,
+    "@type": "BlogPosting",
+    headline: title,
+    description: postDescription(post),
+    datePublished: post.publishedAt,
+    url,
     author: {
       "@type": "Person",
       name: creator.displayName,
       url: `${config.siteUrl}/@${creator.handle}`,
     },
+    ...(post.video
+      ? {
+          video: {
+            "@type": "VideoObject",
+            name: title,
+            description: postDescription(post),
+            thumbnailUrl: post.video.poster ? [post.video.poster] : undefined,
+            uploadDate: post.publishedAt,
+            contentUrl: post.video.src.startsWith("http")
+              ? post.video.src
+              : `${config.siteUrl}${post.video.src}`,
+          },
+        }
+      : {}),
   };
 
   return (
     <>
       <Ambience />
-      <ScrollReveal />
       <Nav user={viewer} solo={soloMode} />
 
       <script
@@ -119,10 +149,10 @@ export default async function ThoughtPage({ params }: Params) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <main className="relative z-10 px-5 pb-24 pt-28 sm:px-8 sm:pt-36">
-        <article className="mx-auto max-w-3xl">
+      <main className="relative z-10 px-5 pb-24 pt-24 sm:px-8 sm:pt-32">
+        <article className="mx-auto max-w-2xl">
           <Link
-            href={`/@${handle}/thoughts`}
+            href={`/@${handle}`}
             className="group mb-10 inline-flex items-center gap-2 text-sm text-bone-faint transition-colors hover:text-bone"
           >
             <svg
@@ -141,89 +171,89 @@ export default async function ThoughtPage({ params }: Params) {
                 strokeLinejoin="round"
               />
             </svg>
-            All thoughts
+            {creator.displayName}
           </Link>
 
-          <ThoughtPlayer thought={thought} />
+          {/* Video first when there is one — watch, then read. */}
+          {post.video && (
+            <div className="mb-10">
+              <ThoughtPlayer
+                src={post.video.src}
+                poster={post.video.poster}
+                title={title}
+              />
+            </div>
+          )}
 
-          <header className="mt-10">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] uppercase tracking-[0.16em] text-bone-faint">
-              {thought.coreThought && (
-                <span className="text-ember">Core thought</span>
+          <header>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-bone-faint">
+              <time dateTime={post.publishedAt} className="font-mono">
+                {dayLabel(at, creator.timezone)}, {timeLabel(at, creator.timezone)}
+              </time>
+              {post.pinned && (
+                <span className="uppercase tracking-[0.16em] text-ember">
+                  Start here
+                </span>
               )}
-              {thought.collections.map((c) => (
+              {post.collections.map((c) => (
                 <Link
                   key={c.slug}
-                  href={`/@${handle}/thoughts?c=${c.slug}`}
-                  className="transition-colors hover:text-bone"
+                  href={`/@${handle}?c=${c.slug}`}
+                  className="transition-colors hover:text-bone-dim"
                 >
                   {c.name}
                 </Link>
               ))}
-              <span className="font-mono normal-case tracking-normal">
-                {thought.durationSec ? `${watchTime(thought.durationSec)} watch` : ""}
-                {thought.readingMin > 0 &&
-                  `${thought.durationSec ? " · " : ""}${thought.readingMin} min read`}
-              </span>
             </div>
 
-            <h1 className="display mt-5 text-[clamp(2rem,5.5vw,3.5rem)] leading-[1.03]">
-              {thought.title}
-            </h1>
-
-            {thought.summary && (
-              <p className="mt-6 text-lg leading-relaxed text-bone-dim">
-                {thought.summary}
-              </p>
+            {post.title && (
+              <h1 className="display mt-5 text-[clamp(2rem,5.5vw,3.25rem)] leading-[1.04]">
+                {post.title}
+              </h1>
             )}
-
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-y border-line py-4">
-              <Link
-                href={`/@${creator.handle}`}
-                className="text-sm text-bone-dim transition-colors hover:text-bone"
-              >
-                {creator.displayName}
-              </Link>
-              <ThoughtActions
-                slug={thought.slug}
-                title={thought.title}
-                url={url}
-              />
-            </div>
           </header>
 
-          {thought.description && (
-            <div className="mt-10 space-y-5 text-[1.0625rem] leading-[1.75] text-bone-dim">
-              {thought.description.split(/\n{2,}/).map((p, i) => (
-                <p key={i}>{p.trim()}</p>
-              ))}
-            </div>
-          )}
+          {/* The writing. */}
+          <div
+            className={`space-y-6 text-[1.125rem] leading-[1.78] text-bone/90 ${
+              post.title ? "mt-8" : "mt-6"
+            }`}
+          >
+            {post.body.split(/\n{2,}/).map((para, i) => (
+              <p key={i} className="whitespace-pre-wrap">
+                {para.trim()}
+              </p>
+            ))}
+          </div>
 
-          {thought.transcript && <Transcript text={thought.transcript} />}
+          {post.transcript && <Transcript text={post.transcript} />}
 
-          {/* The question it deliberately leaves open. */}
-          {thought.openQuestion && (
-            <aside className="mt-14 rounded-2xl border border-ember/30 bg-ember/[0.05] p-7 sm:p-9">
+          {post.openQuestion && (
+            <aside className="mt-12 rounded-2xl border border-ember/30 bg-ember/[0.05] p-7">
               <span className="eyebrow">The question it leaves</span>
-              <p className="display mt-4 text-2xl leading-snug sm:text-[1.75rem]">
-                {thought.openQuestion}
+              <p className="display mt-4 text-xl leading-snug sm:text-2xl">
+                {post.openQuestion}
               </p>
             </aside>
           )}
 
-          {/* Booking, offered once, at the end, only if there's an offer. */}
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-y border-line py-4">
+            <span className="text-sm text-bone-faint">{creator.displayName}</span>
+            <ThoughtActions slug={post.slug} title={title} url={url} />
+          </div>
+
+          {/* Booking, offered once, quietly, at the end. */}
           {offer && (
-            <aside className="mt-8 rounded-2xl border border-line p-7 sm:p-9">
+            <aside className="mt-8 rounded-2xl border border-line p-7">
               <p className="text-[1.0625rem] leading-relaxed text-bone">
                 If this changed how you were thinking about something, the rest
                 of that conversation is worth having properly.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-4">
                 <Link
-                  href={`/@${handle}/book?from=${encodeURIComponent(thought.slug)}${
-                    thought.openQuestion
-                      ? `&q=${encodeURIComponent(thought.openQuestion)}`
+                  href={`/@${handle}/book?from=${encodeURIComponent(post.slug)}${
+                    post.openQuestion
+                      ? `&q=${encodeURIComponent(post.openQuestion)}`
                       : ""
                   }`}
                   className="rounded-full bg-bone px-6 py-3.5 text-sm font-semibold text-ink transition-transform duration-300 hover:scale-[1.02]"
@@ -237,18 +267,22 @@ export default async function ThoughtPage({ params }: Params) {
               </div>
             </aside>
           )}
-        </article>
 
-        {related.length > 0 && (
-          <section className="mx-auto mt-24 max-w-6xl">
-            <h2 className="display mb-8 text-2xl">Related thoughts</h2>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {related.map((r) => (
-                <ThoughtCard key={r.id} thought={r} />
-              ))}
-            </div>
-          </section>
-        )}
+          <Comments postId={post.id} comments={comments} handle={handle} />
+
+          {related.length > 0 && (
+            <section className="mt-16 border-t border-line pt-12">
+              <h2 className="text-[11px] uppercase tracking-[0.2em] text-bone-faint">
+                Related
+              </h2>
+              <div className="mt-5 grid gap-3">
+                {related.map((r) => (
+                  <PostRef key={r.id} post={r} />
+                ))}
+              </div>
+            </section>
+          )}
+        </article>
       </main>
 
       <Footer />

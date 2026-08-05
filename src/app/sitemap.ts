@@ -14,19 +14,19 @@ import { config, soloMode } from "@/lib/config";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const thoughts = await db.video.findMany({
+  const thoughts = await db.post.findMany({
     where: PUBLIC_FILTER,
     select: {
       slug: true,
       updatedAt: true,
-      coreThought: true,
+      pinned: true,
       user: { select: { handle: true } },
     },
     orderBy: { updatedAt: "desc" },
   });
 
   const creators = await db.user.findMany({
-    where: { suspended: false, approved: true, videos: { some: PUBLIC_FILTER } },
+    where: { suspended: false, approved: true, posts: { some: PUBLIC_FILTER } },
     select: { handle: true, updatedAt: true },
   });
 
@@ -63,7 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${config.siteUrl}/@${thought.user.handle}/thoughts/${thought.slug}`,
       lastModified: thought.updatedAt,
       changeFrequency: "monthly",
-      priority: thought.coreThought ? 0.9 : 0.7,
+      priority: thought.pinned ? 0.9 : 0.7,
     });
   }
 

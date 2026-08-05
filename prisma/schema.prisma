@@ -76,7 +76,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  videos      Video[]
+  posts       Post[]
   sessionTypes SessionType[]
   availability AvailabilityRule[]
   blackouts    BlackoutDate[]
@@ -122,79 +122,137 @@ model Follow {
 
 // ─── CONTENT ──────────────────────────────────────────────────
 
-model Video {
+/**
+ * A thought.
+ *
+ * Text is the unit. Writing one should take a minute, because the whole
+ * premise is that ideas arrive unannounced and the ones worth keeping are
+ * lost if capturing them is a chore.
+ *
+ * Video is an attachment, not the thing. A post can have both — say it in
+ * writing, then say it out loud when it deserves it — but `sourceId` is
+ * nullable and always was the wrong thing to build the model around.
+ */
+model Post {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Unique per creator, not globally — two people may both have a film
+  // Unique per author, not globally — two people may both write something
   // called "the-system", and neither should have to rename it.
   slug String
 
-  title String
-  // One line under the title on a card. The reason to press play.
-  hook  String
-  // Two or three sentences on the thought page, under the video.
-  summary     String?
-  description String?
+  /** The writing. This is the post. */
+  body String
 
   /**
-   * The full spoken text.
+   * Optional heading.
    *
-   * Carries more weight than its size suggests: it's the only indexable
-   * content on a page that is otherwise a video, so it's what search
-   * engines rank and what site search queries. It's also the substrate
-   * for the AI assistant later — chunk this, embed it, and answers can
-   * be grounded in what was actually said rather than invented.
+   * Most posts won't have one — a thought that needs a title is usually
+   * an essay. When absent, the opening words of the body stand in wherever
+   * a title is structurally required (tab, share card, search result).
    */
-  transcript String?
+  title String?
 
-  // The question the film raises and refuses to answer. Shown when
-  // playback ends, and carried into the booking form as the topic.
-  // The hinge between watching and booking.
+  /**
+   * The question it deliberately leaves open. Shown at the end and carried
+   * into the booking form as the topic — the hinge between reading and
+   * booking. Optional, because most thoughts aren't sales pitches.
+   */
   openQuestion String?
 
   /**
-   * A defining idea rather than a passing one. Surfaced on the homepage
-   * and badged in the library — the homepage shows the strongest thought,
-   * not the newest, so this is how "strongest" gets decided.
+   * "Start here."
+   *
+   * The handful of thoughts worth meeting a stranger with. Set by hand:
+   * there's no engagement data to infer it from, and inventing one would
+   * turn this into the thing it's a reaction against.
    */
-  coreThought Boolean @default(false)
+  pinned Boolean @default(false)
 
   /**
-   * Who may watch. "public" for now; "members" and "private" exist so a
+   * Who may read. "public" for now; "members" and "private" exist so a
    * future membership tier is a query filter rather than a migration.
    */
   visibility String @default("public")
 
+  // ── optional video attachment ──
   // Meaning depends on the active storage/video provider:
-  // local -> filename under /public/media, r2 -> object key, mux -> playback ID
-  sourceId     String
+  // local -> filename under /public/media, blob -> URL, mux -> playback ID
+  sourceId     String?
   thumbnailUrl String?
   durationSec  Int?
-  // Bytes. Kept so a creator can be shown their own storage use.
   sizeBytes    Int?
+  /** Spoken words, when there's a video. Indexable, and searchable. */
+  transcript   String?
 
   published Boolean @default(true)
-  // Moderation. Anything false is hidden from the public feed.
+  // Moderation. Anything false is hidden from public view.
   approved  Boolean @default(true)
-  // Set by a moderator; explains a takedown to the creator.
+  // Set by a moderator; explains a takedown to the author.
   moderationNote String?
 
-  featured Boolean @default(false)
-  position Int     @default(0)
-  views    Int     @default(0)
+  /**
+   * When it went out, as distinct from when the row was created.
+   * Separate so a post can be backdated or scheduled without lying about
+   * its database history.
+   */
+  publishedAt DateTime @default(now())
 
+  views     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   bookings    Booking[]
   collections Collection[]
+  comments    Comment[] @relation("PostComments")
+  /** Comments elsewhere that point back at this post. */
+  citedBy     Comment[] @relation("CommentCitation")
 
   @@unique([userId, slug])
-  @@index([published, approved, createdAt])
-  @@index([userId, position])
-  @@index([coreThought])
+  @@index([published, approved, publishedAt])
+  @@index([userId, publishedAt])
+  @@index([pinned])
+}
+
+/**
+ * A reply.
+ *
+ * No account required — a name and the words. That's a deliberate trade:
+ * a signup wall would cut replies to near zero on a site with no social
+ * graph, and the cost of skipping it is spam, which `approved` handles by
+ * defaulting to false. Nothing appears until it's been read.
+ */
+model Comment {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
+
+  authorName String
+  /**
+   * Optional and never displayed. Only so there's a way to reply to
+   * someone who said something worth answering privately.
+   */
+  authorEmail String?
+
+  body String
+
+  /**
+   * Another post this reply points at.
+   *
+   * Conversations here reach backwards — someone reads a thought from two
+   * years ago and connects it to a recent one. Storing the link makes that
+   * connection navigable instead of a date mentioned in prose.
+   */
+  citedPostId String?
+  citedPost   Post?   @relation("CommentCitation", fields: [citedPostId], references: [id], onDelete: SetNull)
+
+  /** False until read. Nothing is published on this site unseen. */
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([postId, approved, createdAt])
+  @@index([approved, createdAt])
 }
 
 /**
@@ -216,7 +274,7 @@ model Collection {
   description String?
   position    Int     @default(0)
 
-  videos Video[]
+  posts Post[]
 
   @@index([position])
 }
@@ -301,9 +359,9 @@ model Booking {
   sessionTypeId String
   sessionType   SessionType @relation(fields: [sessionTypeId], references: [id])
 
-  // Which film sent them. Tells a creator what actually converts.
-  sourceVideoId String?
-  sourceVideo   Video?  @relation(fields: [sourceVideoId], references: [id], onDelete: SetNull)
+  // Which thought sent them. Tells the author what actually converts.
+  sourcePostId String?
+  sourcePost   Post?   @relation(fields: [sourcePostId], references: [id], onDelete: SetNull)
 
   // The guest books by email — no account required. Forcing a signup
   // between wanting a call and paying for one loses bookings.

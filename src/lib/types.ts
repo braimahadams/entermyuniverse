@@ -12,38 +12,42 @@ export type CollectionRef = {
   name: string;
 };
 
-/**
- * A thought.
- *
- * "Thought" rather than "video" deliberately: the video is the delivery
- * format, the idea is the thing. That distinction is why there are
- * transcripts, collections and no view counts.
- */
-export type ThoughtView = {
-  id: string;
-  slug: string;
-  title: string;
-  hook: string;
-  summary: string | null;
-  description: string | null;
-  /** The question it refuses to answer. The hinge of the whole funnel. */
-  openQuestion: string | null;
-  collections: CollectionRef[];
-  durationSec: number | null;
-  /** Minutes to read the transcript. 0 when there isn't one yet. */
-  readingMin: number;
-  /** A defining idea rather than a passing one. */
-  coreThought: boolean;
-  featured: boolean;
+/** The optional video hanging off a post. */
+export type VideoAttachment = {
   /** Already resolved by the active video provider. */
   src: string;
   kind: "mp4" | "hls";
   poster: string | null;
+  durationSec: number | null;
+};
+
+/**
+ * A thought.
+ *
+ * Text first. `video` is null for most posts, and everything that renders
+ * one has to cope with that — it's an attachment, not the subject.
+ */
+export type PostView = {
+  id: string;
+  slug: string;
+  /** Explicit title, or null when the body speaks for itself. */
+  title: string | null;
+  body: string;
+  /** The question it refuses to answer. The hinge into a booking. */
+  openQuestion: string | null;
+  collections: CollectionRef[];
+  pinned: boolean;
+  /** ISO string — Dates don't survive the server/client boundary. */
+  publishedAt: string;
+  video: VideoAttachment | null;
+  /** Minutes to read the transcript, when there is one. */
+  readingMin: number;
+  commentCount: number;
   /**
-   * Who made it. Null on a creator's own pages, where the whole page is
-   * already attributed and repeating it on every tile is noise.
+   * Who wrote it. Null on an author's own pages, where the page is already
+   * attributed and repeating it on every card is noise.
    */
-  creator: {
+  author: {
     handle: string;
     displayName: string;
     avatarUrl: string | null;
@@ -51,6 +55,15 @@ export type ThoughtView = {
     /** Drives whether a booking CTA appears at all. */
     canSell: boolean;
   } | null;
+};
+
+export type CommentView = {
+  id: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  /** Another thought this reply points back at. */
+  citedPost: { slug: string; title: string; handle: string } | null;
 };
 
 export type OfferView = {
@@ -77,9 +90,8 @@ export function formatPrice(cents: number, currency: string): string {
 }
 
 /**
- * "Braima's Universe" — the possessive, personalized form used on a
- * creator's own page. First name only, matching the convention used on
- * the player's end-card CTA.
+ * "Braima's" — the possessive form used where a page belongs to someone.
+ * First name only.
  */
 export function possessiveFirstName(displayName: string): string {
   const first = displayName.trim().split(/\s+/)[0] || displayName;

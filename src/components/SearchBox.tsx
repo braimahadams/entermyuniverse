@@ -121,7 +121,7 @@ export function SearchBox({ handle }: { handle: string }) {
                         {hit.title}
                       </p>
                       <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-bone-faint">
-                        {hit.excerpt ?? hit.hook}
+                        {hit.excerpt}
                       </p>
                     </Link>
                   </li>

@@ -7,6 +7,7 @@ import { formatInZone, isoWeekKey } from "@/lib/time";
 import { formatPrice } from "@/lib/types";
 import { setBookingStatus } from "@/app/studio/actions";
 import { brand } from "@/lib/brand";
+import { postTitle } from "@/lib/posts";
 
 export const dynamic = "force-dynamic";
 
@@ -14,13 +15,12 @@ export default async function StudioOverviewPage() {
   const user = await requireUser();
   const now = new Date();
 
-  const [filmCount, followerCount, totalViews, upcoming, earnings, topSources] =
+  const [postCount, pendingReplies, upcoming, earnings, topSources] =
     await Promise.all([
-      db.video.count({ where: { userId: user.id } }),
-      db.follow.count({ where: { followingId: user.id } }),
-      db.video
-        .aggregate({ where: { userId: user.id }, _sum: { views: true } })
-        .then((r) => r._sum.views ?? 0),
+      db.post.count({ where: { userId: user.id } }),
+      db.comment.count({
+        where: { post: { userId: user.id }, approved: false },
+      }),
       user.canSell
         ? db.booking.findMany({
             where: {
@@ -28,7 +28,7 @@ export default async function StudioOverviewPage() {
               startsAt: { gte: now },
               status: { in: BLOCKING_STATUSES },
             },
-            include: { sessionType: true, sourceVideo: true },
+            include: { sessionType: true, sourcePost: true },
             orderBy: { startsAt: "asc" },
             take: 20,
           })
@@ -50,10 +50,10 @@ export default async function StudioOverviewPage() {
           })
         : Promise.resolve([]),
       db.booking.groupBy({
-        by: ["sourceVideoId"],
-        where: { creatorId: user.id, sourceVideoId: { not: null } },
-        _count: { sourceVideoId: true },
-        orderBy: { _count: { sourceVideoId: "desc" } },
+        by: ["sourcePostId"],
+        where: { creatorId: user.id, sourcePostId: { not: null } },
+        _count: { sourcePostId: true },
+        orderBy: { _count: { sourcePostId: "desc" } },
         take: 5,
       }),
     ]);
@@ -70,13 +70,13 @@ export default async function StudioOverviewPage() {
     .filter((b) => isoWeekKey(b.startsAt) === weekKey)
     .reduce((sum, b) => sum + b.amountCents - b.platformFeeCents, 0);
 
-  const videoTitles = new Map(
+  const sourceTitles = new Map(
     (
-      await db.video.findMany({
-        where: { id: { in: topSources.map((s) => s.sourceVideoId!) } },
-        select: { id: true, title: true },
+      await db.post.findMany({
+        where: { id: { in: topSources.map((s) => s.sourcePostId!) } },
+        select: { id: true, title: true, body: true },
       })
-    ).map((v) => [v.id, v.title]),
+    ).map((p) => [p.id, postTitle(p)]),
   );
 
   return (
@@ -127,8 +127,8 @@ export default async function StudioOverviewPage() {
       )}
 
       <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Films" value={String(filmCount)} />
-        <Stat label="Followers" value={String(followerCount)} />
+        <Stat label="Thoughts" value={String(postCount)} />
+        <Stat label="Replies waiting" value={String(pendingReplies)} />
         {user.canSell ? (
           <>
             <Stat label="Yours this week" value={formatPrice(netWeek, currency)} />
@@ -136,8 +136,8 @@ export default async function StudioOverviewPage() {
           </>
         ) : (
           <>
-            <Stat label="Views" value={String(totalViews)} />
-            <Stat label="Upcoming" value="—" />
+            <Stat label="Bookings" value="—" />
+            <Stat label="Earned" value="—" />
           </>
         )}
       </div>
@@ -227,9 +227,9 @@ export default async function StudioOverviewPage() {
                         {booking.context}
                       </p>
                     )}
-                    {booking.sourceVideo && (
+                    {booking.sourcePost && (
                       <p className="mt-3 text-xs text-bone-faint">
-                        Came from: {booking.sourceVideo.title}
+                        Came from: {postTitle(booking.sourcePost)}
                       </p>
                     )}
                   </div>
@@ -246,14 +246,14 @@ export default async function StudioOverviewPage() {
           <div className="card space-y-3 rounded-2xl p-6">
             {topSources.map((source) => (
               <div
-                key={source.sourceVideoId}
+                key={source.sourcePostId}
                 className="flex items-center justify-between gap-4 text-sm"
               >
                 <span className="min-w-0 truncate text-bone-dim">
-                  {videoTitles.get(source.sourceVideoId!) ?? "Unknown"}
+                  {sourceTitles.get(source.sourcePostId!) ?? "Unknown"}
                 </span>
                 <span className="shrink-0 font-medium">
-                  {source._count.sourceVideoId}
+                  {source._count.sourcePostId}
                 </span>
               </div>
             ))}

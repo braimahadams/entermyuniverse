@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { searchThoughts } from "@/lib/search";
+import { searchPosts } from "@/lib/search";
 import { config, soloMode } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     ? config.primaryHandle
     : url.searchParams.get("handle")?.replace(/^@/, "").toLowerCase();
 
-  const results = await searchThoughts(q, { handle: handle || undefined });
+  const results = await searchPosts(q, { handle: handle || undefined });
 
   return NextResponse.json({ results });
 }

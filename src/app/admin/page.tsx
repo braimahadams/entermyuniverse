@@ -23,13 +23,13 @@ export default async function AdminPage() {
   // don't own the platform. Send them somewhere useful.
   if (!viewer.isAdmin) redirect("/studio");
 
-  const [users, pendingUsers, recentFilms, bookings, waitlistCount] =
+  const [users, pendingUsers, recentPosts, bookings, waitlistCount] =
     await Promise.all([
       db.user.findMany({
         orderBy: { createdAt: "desc" },
         take: 50,
         include: {
-          _count: { select: { videos: true, followers: true } },
+          _count: { select: { posts: true, followers: true } },
         },
       }),
       // Surfaced separately: these are the accounts actually waiting on
@@ -38,10 +38,10 @@ export default async function AdminPage() {
         where: { approved: false },
         orderBy: { createdAt: "asc" },
         include: {
-          _count: { select: { videos: true, followers: true } },
+          _count: { select: { posts: true, followers: true } },
         },
       }),
-    db.video.findMany({
+    db.post.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
       include: { user: { select: { handle: true, displayName: true } } },
@@ -121,7 +121,7 @@ export default async function AdminPage() {
                         {user.displayName}
                       </span>
                       <span className="block truncate text-xs text-bone-faint">
-                        @{user.handle} · {user._count.videos} films
+                        @{user.handle} · {user._count.posts} films
                       </span>
                     </span>
                   </Link>
@@ -176,7 +176,7 @@ export default async function AdminPage() {
                     )}
                   </span>
                   <span className="block truncate text-xs text-bone-faint">
-                    @{user.handle} · {user._count.videos} films ·{" "}
+                    @{user.handle} · {user._count.posts} films ·{" "}
                     {user._count.followers} followers
                   </span>
                 </span>
@@ -227,12 +227,12 @@ export default async function AdminPage() {
 
         <h2 className="display mb-5 mt-14 text-2xl">Recent uploads</h2>
         <div className="card divide-y divide-line rounded-2xl">
-          {recentFilms.length === 0 ? (
+          {recentPosts.length === 0 ? (
             <p className="p-6 text-center text-sm text-bone-dim">
               Nothing uploaded yet.
             </p>
           ) : (
-            recentFilms.map((film) => (
+            recentPosts.map((film) => (
               <div
                 key={film.id}
                 className="flex flex-wrap items-center justify-between gap-4 p-4"

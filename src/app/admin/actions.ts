@@ -69,7 +69,7 @@ export async function moderateFilm(formData: FormData) {
   const approved = formData.get("approved") === "true";
   if (!id) return;
 
-  await db.video.update({
+  await db.post.update({
     where: { id },
     data: {
       approved,

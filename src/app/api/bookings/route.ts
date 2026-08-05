@@ -88,10 +88,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: check.reason }, { status: 409 });
   }
 
-  // Only credit a film that actually belongs to this creator — otherwise
+  // Only credit a thought that actually belongs to this creator — otherwise
   // the attribution stat could be poisoned from the query string.
-  const sourceVideo = input.fromVideo
-    ? await db.video.findUnique({
+  const sourcePost = input.fromVideo
+    ? await db.post.findUnique({
         where: { userId_slug: { userId: creator.id, slug: input.fromVideo } },
         select: { id: true },
       })
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
       reference: generateReference(),
       creatorId: creator.id,
       sessionTypeId: sessionType.id,
-      sourceVideoId: sourceVideo?.id ?? null,
+      sourcePostId: sourcePost?.id ?? null,
       name: input.name,
       email: input.email.toLowerCase(),
       topic: input.topic,
