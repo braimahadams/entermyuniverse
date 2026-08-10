@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { FilmUploader, type UploadResult } from "@/components/FilmUploader";
+import { useEffect, useRef, useState } from "react";
 import { deletePost, savePost } from "@/app/studio/actions";
 
 export type CollectionOption = { slug: string; name: string };
@@ -12,44 +11,58 @@ export type StudioPost = {
   title: string | null;
   body: string;
   openQuestion: string | null;
-  transcript: string | null;
   collections: string[];
   pinned: boolean;
   published: boolean;
   approved: boolean;
   moderationNote: string | null;
-  sourceId: string | null;
-  thumbnailUrl: string | null;
-  durationSec: number | null;
-  sizeBytes: number | null;
   publishedAt: string;
 };
 
 /**
+ * A textarea that grows with what's in it.
+ *
+ * A fixed box with an inner scrollbar is the single most discouraging
+ * thing you can put in front of someone writing something long — you lose
+ * sight of the paragraph above the one you're on. This grows instead, so
+ * the page scrolls and the text never does.
+ *
+ * Height is reset to `auto` before measuring, because scrollHeight can
+ * only ever report a value >= the current height; without the reset the
+ * box would grow and never shrink back when text is deleted.
+ */
+function useAutoGrow(value: string) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+
+  return ref;
+}
+
+/**
  * The composer.
  *
- * One textarea, focused, and a Post button. Everything else — a title,
- * collections, a video, the open question — is folded away behind
- * "Add details", because the moment writing a thought feels like filling
- * in a form is the moment thoughts stop getting written down.
- *
- * Cmd/Ctrl+Enter submits, since that's the muscle memory from every other
- * box like this.
+ * A title, a body, and Post. Collections, the open question and the
+ * "start here" flag fold away behind "Add details" — the moment writing a
+ * thought feels like filling in a form is the moment thoughts stop getting
+ * written down.
  */
-export function Composer({
-  collections,
-  storageProvider,
-}: {
-  collections: CollectionOption[];
-  storageProvider: "local" | "blob";
-}) {
+export function Composer({ collections }: { collections: CollectionOption[] }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [expanded, setExpanded] = useState(false);
-  const [upload, setUpload] = useState<UploadResult | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const bodyRef = useAutoGrow(body);
+
   function onKeyDown(e: React.KeyboardEvent) {
+    // The muscle memory from every other box like this.
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && body.trim()) {
       formRef.current?.requestSubmit();
     }
@@ -61,46 +74,51 @@ export function Composer({
       action={async (formData) => {
         setSaving(true);
         await savePost(formData);
-        // Clear only after the server confirms — losing what you wrote to
-        // an optimistic reset would be unforgivable.
+        // Cleared only after the server confirms — losing what you wrote
+        // to an optimistic reset would be unforgivable.
+        setTitle("");
         setBody("");
-        setUpload(null);
         setExpanded(false);
         setSaving(false);
       }}
-      className="card rounded-2xl p-5 sm:p-6"
+      className="card rounded-2xl p-5 sm:p-7"
     >
-      <input type="hidden" name="sourceId" value={upload?.key ?? ""} />
+      <label htmlFor="compose-title" className="sr-only">
+        Title
+      </label>
       <input
-        type="hidden"
-        name="durationSec"
-        value={upload?.durationSec ?? ""}
+        id="compose-title"
+        name="title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onKeyDown={onKeyDown}
+        placeholder="Title"
+        maxLength={160}
+        className="display w-full bg-transparent text-2xl leading-snug text-bone placeholder:text-bone-faint/70 focus:outline-none sm:text-3xl"
       />
-      <input type="hidden" name="sizeBytes" value={upload?.sizeBytes ?? ""} />
 
-      <label htmlFor="compose" className="sr-only">
+      <label htmlFor="compose-body" className="sr-only">
         What are you thinking?
       </label>
       <textarea
-        id="compose"
+        id="compose-body"
         name="body"
+        ref={bodyRef}
         value={body}
         onChange={(e) => setBody(e.target.value)}
         onKeyDown={onKeyDown}
-        rows={body.length > 200 ? 10 : 5}
+        rows={4}
         placeholder="What's on your mind?"
-        className="w-full resize-y bg-transparent text-[1.0625rem] leading-[1.7] text-bone placeholder:text-bone-faint focus:outline-none"
+        // resize-none because the box sizes itself; a drag handle that
+        // fights the auto-grow is worse than no handle.
+        className="mt-4 w-full resize-none overflow-hidden bg-transparent text-[1.0625rem] leading-[1.75] text-bone/90 placeholder:text-bone-faint focus:outline-none"
       />
 
       {expanded && (
         <div className="mt-5 space-y-5 border-t border-line pt-5">
-          <Field label="Title" hint="Optional. Most thoughts don't need one.">
-            <input name="title" className={input} placeholder="Leave blank to use the opening line" />
-          </Field>
-
           <Field
             label="Collections"
-            hint="What it's about. This is how people find it later."
+            hint="What it's about. This is how someone finds it a year from now."
           >
             <div className="flex flex-wrap gap-2">
               {collections.map((c) => (
@@ -122,7 +140,7 @@ export function Composer({
 
           <Field
             label="Open question"
-            hint="The question this leaves hanging. Shown at the end and carried into the booking form."
+            hint="The question this leaves hanging. Shown at the end, and carried into the booking form."
           >
             <textarea
               name="openQuestion"
@@ -130,20 +148,6 @@ export function Composer({
               className={`${input} resize-none`}
             />
           </Field>
-
-          <Field label="Video" hint="Optional. Say it out loud as well.">
-            <FilmUploader provider={storageProvider} onUploaded={setUpload} />
-          </Field>
-
-          {upload && (
-            <Field label="Transcript" hint="Paste the spoken words — it's what makes a video findable.">
-              <textarea
-                name="transcript"
-                rows={5}
-                className={`${input} resize-y font-mono text-xs leading-relaxed`}
-              />
-            </Field>
-          )}
 
           <label className="flex items-center gap-2.5 text-sm text-bone-dim">
             <input
@@ -181,51 +185,35 @@ export function Composer({
   );
 }
 
-/** Editing an existing post. Same fields, all visible — you're here on purpose. */
+/** Editing an existing post. Everything visible — you're here on purpose. */
 export function PostEditor({
   post,
   collections,
-  storageProvider,
 }: {
   post: StudioPost;
   collections: CollectionOption[];
-  storageProvider: "local" | "blob";
 }) {
-  const [upload, setUpload] = useState<UploadResult | null>(null);
-  const sourceId = upload?.key ?? post.sourceId ?? "";
+  const [body, setBody] = useState(post.body);
+  const bodyRef = useAutoGrow(body);
 
   return (
     <form action={savePost} className="mt-5 space-y-5 border-t border-line pt-5">
       <input type="hidden" name="id" value={post.id} />
-      <input type="hidden" name="sourceId" value={sourceId} />
-      <input
-        type="hidden"
-        name="durationSec"
-        value={upload?.durationSec ?? post.durationSec ?? ""}
-      />
-      <input
-        type="hidden"
-        name="sizeBytes"
-        value={upload?.sizeBytes ?? post.sizeBytes ?? ""}
-      />
-      <input
-        type="hidden"
-        name="thumbnailUrl"
-        value={post.thumbnailUrl ?? ""}
-      />
+
+      <Field label="Title">
+        <input name="title" defaultValue={post.title ?? ""} className={input} />
+      </Field>
 
       <Field label="Thought">
         <textarea
           name="body"
-          defaultValue={post.body}
-          rows={8}
+          ref={bodyRef}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
           required
-          className={`${input} resize-y leading-relaxed`}
+          rows={6}
+          className={`${input} resize-none overflow-hidden leading-relaxed`}
         />
-      </Field>
-
-      <Field label="Title" hint="Optional.">
-        <input name="title" defaultValue={post.title ?? ""} className={input} />
       </Field>
 
       <Field label="Collections">
@@ -256,31 +244,6 @@ export function PostEditor({
           className={`${input} resize-none`}
         />
       </Field>
-
-      <details className="rounded-xl border border-line p-4">
-        <summary className="cursor-pointer text-xs text-bone-dim">
-          {post.sourceId ? "Replace the video" : "Attach a video"}
-        </summary>
-        <div className="mt-4">
-          <FilmUploader provider={storageProvider} onUploaded={setUpload} />
-        </div>
-        {sourceId && (
-          <p className="mt-3 break-all text-xs text-bone-faint">
-            Current: <code className="text-bone-dim">{sourceId}</code>
-          </p>
-        )}
-      </details>
-
-      {sourceId && (
-        <Field label="Transcript">
-          <textarea
-            name="transcript"
-            rows={6}
-            defaultValue={post.transcript ?? ""}
-            className={`${input} resize-y font-mono text-xs leading-relaxed`}
-          />
-        </Field>
-      )}
 
       <div className="flex flex-wrap gap-6">
         <label className="flex items-center gap-2.5 text-sm text-bone-dim">

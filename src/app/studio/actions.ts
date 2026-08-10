@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { removeStored } from "@/lib/providers/storage";
 import { safeTimeZone } from "@/lib/time";
 import { slugify, postTitle } from "@/lib/posts";
 import { BOOKING_STATUS } from "@/lib/constants";
@@ -46,23 +45,12 @@ export async function savePost(formData: FormData) {
     .filter(Boolean)
     .map((slug) => ({ slug }));
 
-  const sourceId = String(formData.get("sourceId") ?? "").trim() || null;
-
   const data = {
     body,
     title,
     openQuestion: String(formData.get("openQuestion") ?? "").trim() || null,
     pinned: formData.get("pinned") === "on",
     published: formData.get("published") !== "off",
-    sourceId,
-    // Video metadata is meaningless without a video — clear it together so
-    // removing an attachment can't leave a stale duration behind.
-    thumbnailUrl: sourceId
-      ? String(formData.get("thumbnailUrl") ?? "").trim() || null
-      : null,
-    durationSec: sourceId ? Number(formData.get("durationSec")) || null : null,
-    sizeBytes: sourceId ? Number(formData.get("sizeBytes")) || null : null,
-    transcript: String(formData.get("transcript") ?? "").trim() || null,
   };
 
   if (id) {
@@ -115,13 +103,11 @@ export async function deletePost(formData: FormData) {
 
   const post = await db.post.findFirst({
     where: { id, userId: user.id },
-    select: { id: true, sourceId: true },
+    select: { id: true },
   });
   if (!post) return;
 
   await db.post.delete({ where: { id: post.id } });
-  // Best-effort: never leave the row behind because a file wouldn't delete.
-  if (post.sourceId) await removeStored(post.sourceId);
 
   revalidatePost(user.handle);
 }

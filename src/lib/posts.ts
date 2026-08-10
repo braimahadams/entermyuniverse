@@ -9,8 +9,12 @@ import { getZonedParts } from "@/lib/time";
  * an idea at 2am.
  */
 
-/** The longest a body can be before the timeline truncates it. */
-export const TIMELINE_CLAMP = 460;
+/**
+ * How much of an opening paragraph the timeline will show before it
+ * trails off. Long enough to carry a whole thought, short enough that
+ * three cards still fit on a phone screen.
+ */
+export const TEASER_MAX = 320;
 
 /**
  * A display title.
@@ -38,17 +42,34 @@ export function postDescription(post: { body: string }): string {
   return flat.length > 155 ? flat.slice(0, 152).trimEnd() + "…" : flat;
 }
 
-/** True when the timeline should clamp this and offer a link. */
-export function isLong(body: string): boolean {
-  return body.length > TIMELINE_CLAMP;
-}
+/**
+ * The opening paragraph, and whether there's more behind it.
+ *
+ * The timeline shows this and nothing else. Splitting on the blank line
+ * respects how the writer broke the thought up rather than cutting at an
+ * arbitrary character count — the first paragraph is almost always the
+ * claim, and the rest is the argument for it.
+ *
+ * A very long opening paragraph still gets trailed off, on a word
+ * boundary, so one rambling post can't fill the whole screen.
+ */
+export function firstParagraph(body: string): {
+  text: string;
+  hasMore: boolean;
+} {
+  const paragraphs = body.trim().split(/\n{2,}/);
+  const first = paragraphs[0]?.trim() ?? "";
+  const moreParagraphs = paragraphs.length > 1;
 
-export function clamp(body: string): string {
-  if (!isLong(body)) return body;
-  const cut = body.slice(0, TIMELINE_CLAMP);
-  // Break on a word, not mid-syllable.
+  if (first.length <= TEASER_MAX) {
+    return { text: first, hasMore: moreParagraphs };
+  }
+
+  const cut = first.slice(0, TEASER_MAX);
   const lastSpace = cut.lastIndexOf(" ");
-  return (lastSpace > TIMELINE_CLAMP * 0.7 ? cut.slice(0, lastSpace) : cut).trimEnd() + "…";
+  const trimmed = (lastSpace > TEASER_MAX * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd();
+
+  return { text: trimmed + "…", hasMore: true };
 }
 
 /**

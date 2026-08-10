@@ -106,22 +106,16 @@ export const COLLECTIONS = [
 export type CollectionSlug = (typeof COLLECTIONS)[number]["slug"];
 
 /**
- * Roughly how long the transcript takes to read.
+ * Roughly how long a piece takes to read.
  *
- * 200 wpm is the usual estimate for comfortable prose. Shown next to watch
- * time so someone can choose to read instead — a lot of people will scan a
- * transcript in a place they can't play audio.
+ * 200 wpm is the usual estimate for comfortable prose. Shown on the
+ * timeline so someone can tell a one-line thought from a long one before
+ * they commit to opening it.
  */
-export function readingMinutes(transcript: string | null | undefined): number {
-  if (!transcript) return 0;
-  const words = transcript.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.round(words / 200));
+export function readingMinutes(text: string | null | undefined): number {
+  if (!text) return 0;
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  // Under a minute isn't worth announcing.
+  return words < 120 ? 0 : Math.round(words / 200);
 }
 
-/** "3:04" from seconds. */
-export function watchTime(seconds: number | null | undefined): string {
-  if (!seconds) return "";
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
-}

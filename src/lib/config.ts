@@ -16,20 +16,6 @@ export const config = {
     "",
   ),
 
-  video: {
-    provider: env("VIDEO_PROVIDER", "local") as
-      | "local"
-      | "url"
-      | "mux"
-      | "stream",
-    cloudflareAccountId: env("CLOUDFLARE_ACCOUNT_ID"),
-  },
-
-  storage: {
-    // Where creator uploads land. See src/lib/providers/storage.ts.
-    provider: env("STORAGE_PROVIDER", "local") as "local" | "blob",
-  },
-
   platform: {
     /**
      * Default cut of each booking, in basis points. 1500 = 15%.

@@ -12,21 +12,7 @@ export type CollectionRef = {
   name: string;
 };
 
-/** The optional video hanging off a post. */
-export type VideoAttachment = {
-  /** Already resolved by the active video provider. */
-  src: string;
-  kind: "mp4" | "hls";
-  poster: string | null;
-  durationSec: number | null;
-};
-
-/**
- * A thought.
- *
- * Text first. `video` is null for most posts, and everything that renders
- * one has to cope with that — it's an attachment, not the subject.
- */
+/** A thought. Text, and only text. */
 export type PostView = {
   id: string;
   slug: string;
@@ -39,8 +25,7 @@ export type PostView = {
   pinned: boolean;
   /** ISO string — Dates don't survive the server/client boundary. */
   publishedAt: string;
-  video: VideoAttachment | null;
-  /** Minutes to read the transcript, when there is one. */
+  /** Minutes to read the body, for the timeline. */
   readingMin: number;
   commentCount: number;
   /**

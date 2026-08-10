@@ -6,8 +6,6 @@ import { Comments } from "@/components/Comments";
 import { Nav } from "@/components/Nav";
 import { PostRef } from "@/components/PostCard";
 import { ThoughtActions } from "@/components/ThoughtActions";
-import { ThoughtPlayer } from "@/components/ThoughtPlayer";
-import { Transcript } from "@/components/Transcript";
 import { Footer } from "@/components/sections";
 import { getCurrentUser } from "@/lib/auth";
 import { getCreatorByHandle, getPost, getRelatedPosts } from "@/lib/creators";
@@ -44,22 +42,16 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       url,
       type: "article",
       publishedTime: post.publishedAt,
-      images: post.video?.poster ? [{ url: post.video.poster }] : undefined,
     },
-    twitter: {
-      card: post.video?.poster ? "summary_large_image" : "summary",
-      title,
-      description,
-    },
+    twitter: { card: "summary", title, description },
   };
 }
 
 /**
  * One thought.
  *
- * When there's a video it goes first, above the writing — you watch, then
- * you read what it was about. When there isn't, which is most of the time,
- * the page is simply the text at a comfortable measure.
+ * The whole page is the text, at a comfortable measure. The title, the
+ * writing, then a way to reply.
  */
 export default async function PostPage({ params }: Params) {
   const { handle: raw, slug } = await params;
@@ -123,20 +115,6 @@ export default async function PostPage({ params }: Params) {
       name: creator.displayName,
       url: `${config.siteUrl}/@${creator.handle}`,
     },
-    ...(post.video
-      ? {
-          video: {
-            "@type": "VideoObject",
-            name: title,
-            description: postDescription(post),
-            thumbnailUrl: post.video.poster ? [post.video.poster] : undefined,
-            uploadDate: post.publishedAt,
-            contentUrl: post.video.src.startsWith("http")
-              ? post.video.src
-              : `${config.siteUrl}${post.video.src}`,
-          },
-        }
-      : {}),
   };
 
   return (
@@ -173,17 +151,6 @@ export default async function PostPage({ params }: Params) {
             </svg>
             {creator.displayName}
           </Link>
-
-          {/* Video first when there is one — watch, then read. */}
-          {post.video && (
-            <div className="mb-10">
-              <ThoughtPlayer
-                src={post.video.src}
-                poster={post.video.poster}
-                title={title}
-              />
-            </div>
-          )}
 
           <header>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-bone-faint">
@@ -225,8 +192,6 @@ export default async function PostPage({ params }: Params) {
               </p>
             ))}
           </div>
-
-          {post.transcript && <Transcript text={post.transcript} />}
 
           {post.openQuestion && (
             <aside className="mt-12 rounded-2xl border border-ember/30 bg-ember/[0.05] p-7">

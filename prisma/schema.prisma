@@ -1,8 +1,8 @@
 // ENTER MY UNIVERSE — data model
 //
 // A platform, not a personal site. Every piece of content belongs to a
-// User. Anyone can sign up, claim a handle, and publish films into their
-// own universe at /@handle.
+// User. Anyone can sign up, claim a handle, and publish writing into
+// their own universe at /@handle.
 //
 // Publishing is gated behind `approved` (see User below) and selling is
 // gated behind `canSell` — both start false for everyone but the founding
@@ -48,7 +48,7 @@ model User {
   // ── platform roles ──
   // Site-wide admin: moderation, granting canSell. That's you.
   isAdmin  Boolean @default(false)
-  // Anyone can sign up, but a fresh account's films stay off the public
+  // Anyone can sign up, but a fresh account's writing stays off the public
   // feed and their own page shows empty until an admin flips this. Signup
   // itself is never blocked — only visibility is.
   approved Boolean @default(false)
@@ -125,13 +125,10 @@ model Follow {
 /**
  * A thought.
  *
- * Text is the unit. Writing one should take a minute, because the whole
- * premise is that ideas arrive unannounced and the ones worth keeping are
- * lost if capturing them is a chore.
- *
- * Video is an attachment, not the thing. A post can have both — say it in
- * writing, then say it out loud when it deserves it — but `sourceId` is
- * nullable and always was the wrong thing to build the model around.
+ * Text, and only text. Video was tried and cut: it needed hosting,
+ * storage, transcoding and a transcript before a single idea could go
+ * out, and the result was that nothing went out at all. Writing has none
+ * of that overhead, which is the only reason this gets used.
  */
 model Post {
   id     String @id @default(cuid())
@@ -146,11 +143,12 @@ model Post {
   body String
 
   /**
-   * Optional heading.
+   * The heading.
    *
-   * Most posts won't have one — a thought that needs a title is usually
-   * an essay. When absent, the opening words of the body stand in wherever
-   * a title is structurally required (tab, share card, search result).
+   * Carries real weight now: the timeline shows a title and the opening
+   * paragraph, and the title is what someone clicks. Still nullable, so a
+   * one-line thought doesn't have to invent a heading for itself — the
+   * opening words stand in when it's absent.
    */
   title String?
 
@@ -175,16 +173,6 @@ model Post {
    * future membership tier is a query filter rather than a migration.
    */
   visibility String @default("public")
-
-  // ── optional video attachment ──
-  // Meaning depends on the active storage/video provider:
-  // local -> filename under /public/media, blob -> URL, mux -> playback ID
-  sourceId     String?
-  thumbnailUrl String?
-  durationSec  Int?
-  sizeBytes    Int?
-  /** Spoken words, when there's a video. Indexable, and searchable. */
-  transcript   String?
 
   published Boolean @default(true)
   // Moderation. Anything false is hidden from public view.

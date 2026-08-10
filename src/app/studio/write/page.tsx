@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { config } from "@/lib/config";
 import { togglePinned } from "@/app/studio/actions";
 import { Composer, PostEditor } from "@/app/studio/write/Composer";
 import { dayLabel, postTitle, timeLabel } from "@/lib/posts";
@@ -31,10 +30,7 @@ export default async function StudioWritePage() {
         </p>
       </div>
 
-      <Composer
-        collections={options}
-        storageProvider={config.storage.provider}
-      />
+      <Composer collections={options} />
 
       {posts.length > 0 && (
         <>
@@ -62,7 +58,6 @@ export default async function StudioWritePage() {
                       {!post.approved && (
                         <span className="text-ember">Hidden by a moderator</span>
                       )}
-                      {post.sourceId && <span>Video</span>}
                     </span>
                   </span>
                 </summary>
@@ -96,20 +91,14 @@ export default async function StudioWritePage() {
                     title: post.title,
                     body: post.body,
                     openQuestion: post.openQuestion,
-                    transcript: post.transcript,
                     collections: post.collections.map((c) => c.slug),
                     pinned: post.pinned,
                     published: post.published,
                     approved: post.approved,
                     moderationNote: post.moderationNote,
-                    sourceId: post.sourceId,
-                    thumbnailUrl: post.thumbnailUrl,
-                    durationSec: post.durationSec,
-                    sizeBytes: post.sizeBytes,
                     publishedAt: post.publishedAt.toISOString(),
                   }}
                   collections={options}
-                  storageProvider={config.storage.provider}
                 />
               </details>
             ))}

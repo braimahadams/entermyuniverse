@@ -5,7 +5,7 @@ import { postTitle } from "@/lib/posts";
 /**
  * Site search.
  *
- * Postgres `ILIKE` across the body, title and any transcript. Not clever,
+ * Postgres `ILIKE` across the title and body. Not clever,
  * and deliberately so: at a few thousand posts it returns in single-digit
  * milliseconds, needs no index to maintain, no extra service, and no cost.
  *
@@ -52,7 +52,6 @@ export async function searchPosts(
         { title: { contains: q, mode: "insensitive" } },
         { body: { contains: q, mode: "insensitive" } },
         { openQuestion: { contains: q, mode: "insensitive" } },
-        { transcript: { contains: q, mode: "insensitive" } },
       ],
     },
     orderBy: { publishedAt: "desc" },
@@ -65,7 +64,7 @@ export async function searchPosts(
     handle: row.user.handle,
     title: postTitle(row),
     publishedAt: row.publishedAt.toISOString(),
-    excerpt: excerptAround(row.body, q) ?? excerptAround(row.transcript, q),
+    excerpt: excerptAround(row.body, q),
   }));
 }
 

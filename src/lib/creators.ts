@@ -1,16 +1,9 @@
 import { db } from "@/lib/db";
-import { resolveVideo } from "@/lib/providers/video";
 import { readingMinutes } from "@/lib/collections";
 import { config } from "@/lib/config";
 import type { PostView } from "@/lib/types";
 
-/**
- * Every read the public pages make.
- *
- * Provider URLs are resolved here, server-side, so the browser never
- * learns which video host is in use and swapping hosts changes nothing
- * client-side.
- */
+/** Every read the public pages make. */
 
 export type CreatorView = {
   id: string;
@@ -69,12 +62,8 @@ type PostRow = {
   title: string | null;
   body: string;
   openQuestion: string | null;
-  transcript: string | null;
   pinned: boolean;
   publishedAt: Date;
-  sourceId: string | null;
-  thumbnailUrl: string | null;
-  durationSec: number | null;
   collections: { slug: string; name: string }[];
   _count?: { comments: number };
   user?: {
@@ -87,11 +76,6 @@ type PostRow = {
 };
 
 export function toPostView(row: PostRow): PostView {
-  // Only resolve a video when there actually is one. Most posts are text.
-  const source = row.sourceId
-    ? resolveVideo(row.sourceId, row.thumbnailUrl)
-    : null;
-
   return {
     id: row.id,
     slug: row.slug,
@@ -101,17 +85,9 @@ export function toPostView(row: PostRow): PostView {
     collections: row.collections,
     pinned: row.pinned,
     publishedAt: row.publishedAt.toISOString(),
-    video: source
-      ? {
-          src: source.url,
-          kind: source.kind,
-          poster: source.poster,
-          durationSec: row.durationSec,
-        }
-      : null,
     // Derived, not stored — a stored count goes stale the moment the
-    // transcript is edited.
-    readingMin: readingMinutes(row.transcript),
+    // text is edited.
+    readingMin: readingMinutes(row.body),
     commentCount: row._count?.comments ?? 0,
     author: row.user
       ? {
@@ -237,7 +213,7 @@ export async function getPinned(
 export async function getPost(
   handle: string,
   slug: string,
-): Promise<(PostView & { transcript: string | null }) | null> {
+): Promise<PostView | null> {
   const row = await db.post.findFirst({
     where: {
       slug,
@@ -251,7 +227,7 @@ export async function getPost(
   });
 
   if (!row) return null;
-  return { ...toPostView(row), transcript: row.transcript };
+  return toPostView(row);
 }
 
 /**
