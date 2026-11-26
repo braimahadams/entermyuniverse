@@ -33,7 +33,11 @@ Repo: https://github.com/braimahadams/entermyuniverse
 
 ---
 
-## 2. Cloudflare Pages build settings
+## 2. Cloudflare Workers & Pages build settings
+
+The new dashboard often hides “Build output directory” and requires a
+**Deploy command**. Output dir is set in repo file [`wrangler.jsonc`](../wrangler.jsonc)
+(`assets.directory` = `./dist`).
 
 In **entermyuniverse** → **Settings** → **Builds**:
 
@@ -41,14 +45,15 @@ In **entermyuniverse** → **Settings** → **Builds**:
 | --- | --- |
 | Production branch | `main` |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
+| Deploy command | `npx wrangler deploy` |
 | Root directory | `/` |
-| Deploy command | **empty** (remove `npx wrangler deploy`) |
 | Env vars | none |
 
-Then **Retry deployment** / create a new deployment from `main`.
+You do **not** need a separate output-directory field in the UI.
 
-You should get a `*.pages.dev` URL when the build is green.
+Then **Retry deployment** from `main`. A green build should publish to
+`entermyuniverse.<workers/pages host>` / your project’s `*.workers.dev` or
+`*.pages.dev` URL shown on the Overview tab.
 
 ---
 

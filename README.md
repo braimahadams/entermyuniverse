@@ -43,13 +43,12 @@ Never put a personal Gmail address in the repo.
 
 ## Hosting
 
-Target: **Cloudflare Pages Free**
+Target: **Cloudflare Workers & Pages (Free)**
 
 - Build command: `npm run build`
-- Output directory: `dist`
-- Root branch for production later: `main` (after merge)
-- Preview branch: `portfolio-static`
+- Deploy command: `npx wrangler deploy`
+- Output directory: `./dist` (set in `wrangler.jsonc`, not always shown in the UI)
+- Production branch: `main`
 
-See [`docs/DEPLOY.md`](docs/DEPLOY.md) for preview setup, DNS cutover, email
-routing, and www → apex redirect. Do not change production DNS until the
-preview is approved.
+See [`docs/DEPLOY.md`](docs/DEPLOY.md) for DNS cutover, email forwarding, and
+www → apex redirect. Do not change production DNS until the preview is approved.

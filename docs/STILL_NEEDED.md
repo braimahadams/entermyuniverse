@@ -11,7 +11,7 @@ pieces stay hidden (no placeholders).
 6. **Cal.com booking URL** for “Book a creator strategy call”
 7. **Up to 3 featured videos** — optimized vertical cover (`public/covers/…`) + original post URL; optional verified views or campaign name
 8. **Optional:** replace `public/og.png` with a share image that includes the real portrait after it exists
-9. **Cloudflare Pages** redeploy from `main` with output `dist` and no wrangler deploy command
+9. **Cloudflare** redeploy from `main`: build `npm run build`, deploy `npx wrangler deploy` (output dir is in `wrangler.jsonc`)
 10. **After any DNS cutover:** send a test to `adams@entermyuniverse.com` from another account and confirm it still hits Gmail
 
 Already configured:

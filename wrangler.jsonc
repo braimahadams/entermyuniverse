@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers + static assets (new dashboard UI).
+  // Build output lives in dist/; deploy with: npx wrangler deploy
+  "name": "entermyuniverse",
+  "compatibility_date": "2026-11-26",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
