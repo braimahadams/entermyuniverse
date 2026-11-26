@@ -252,7 +252,7 @@ function renderScoutViral() {
 function renderFooter() {
   return `
     <footer class="rise mt-8 text-center text-[0.75rem] tracking-[0.04em] text-bone-faint" style="--d:640ms">
-      <p class="m-0">Enter My Universe</p>
+      <p class="m-0">Adams Braimah</p>
     </footer>
   `;
 }

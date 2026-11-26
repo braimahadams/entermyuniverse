@@ -16,7 +16,7 @@ export const content = {
   name: "Adams Braimah",
   tagline: "",
   siteUrl: "https://entermyuniverse.com",
-  metaTitle: "Adams Braimah — Enter My Universe",
+  metaTitle: "Adams Braimah",
   metaDescription:
     "Creator portfolio and links for Adams Braimah. Find Instagram, TikTok, YouTube, Facebook, and Snapchat in one place — plus ScoutViral.",
 
