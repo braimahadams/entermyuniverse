@@ -58,40 +58,8 @@ Live Workers URL (production deploy):
 
 https://entermyuniverse.braimahadams01.workers.dev
 
-Custom domain `entermyuniverse.com` still points at old Vercel until you
-attach it under **Domains** and cut DNS over (keep Spaceship MX/SPF).
-
----
-
-## 3. After preview approval — connect the root domain
-
-1. Confirm Pages production deploy from `main` is green.
-2. In Pages → **Custom domains** → add `entermyuniverse.com` and `www.entermyuniverse.com`.
-3. If Cloudflare asks for a nameserver change at Spaceship, copy the Cloudflare NS pair it shows.
-
-### Preserve email during NS / DNS moves
-
-Before switching NS or rewriting apex records:
-
-1. Add the domain as a Cloudflare zone (if Pages did not already).
-2. **Recreate these Spaceship email records first** (DNS only, orange-cloud / DNS-only, not proxied for MX):
-   - MX `@` → `mx1.efwd.spaceship.net` (priority 0)
-   - MX `@` → `mx2.efwd.spaceship.net` (priority 0)
-   - TXT `@` → `v=spf1 include:spf.efwd.spaceship.net ~all`
-3. Then attach Pages custom domains (proxied A/AAAA or CNAME as Cloudflare instructs).
-4. Add a **www → apex** redirect:
-   - Pages: both hostnames attached, or
-   - Redirect Rule: `www.entermyuniverse.com/*` → `https://entermyuniverse.com/$1` (301).
-
-Do **not** enable Cloudflare Email Routing unless you intentionally migrate off Spaceship forwarding. Mixing both MX sets will break mail.
-
-### HTTPS
-
-Cloudflare provisions Universal SSL automatically for proxied hostnames. Confirm:
-
-- `https://entermyuniverse.com` loads
-- `http://` redirects to `https://`
-- Certificate status is **Active**
+Custom domain cutover steps (Spaceship NS → Cloudflare zone + Worker
+domains, preserve email): see [`docs/GO_LIVE.md`](GO_LIVE.md).
 
 ---
 

@@ -1,10 +1,15 @@
 {
   // Cloudflare Workers + static assets (new dashboard UI).
   // Build output lives in dist/; deploy with: npx wrangler deploy
+  // Custom domains require the zone on Cloudflare first — see docs/GO_LIVE.md
   "name": "entermyuniverse",
   "compatibility_date": "2026-11-26",
   "workers_dev": true,
   "preview_urls": true,
+  "routes": [
+    { "pattern": "entermyuniverse.com", "custom_domain": true },
+    { "pattern": "www.entermyuniverse.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"
