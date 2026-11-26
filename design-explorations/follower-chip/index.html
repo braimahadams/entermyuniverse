@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Follower header concepts — Enter My Universe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #07070a;
+        --ink-2: #0c0c11;
+        --ink-3: #14141b;
+        --bone: #f4f1ea;
+        --bone-dim: #a8a49c;
+        --bone-faint: #6b6862;
+        --ember: #ff7a45;
+        --ember-deep: #e2542a;
+        --line: rgba(244, 241, 234, 0.09);
+        --line-bright: rgba(244, 241, 234, 0.18);
+        --font-display: "Instrument Serif", Georgia, serif;
+        --font-sans: "DM Sans", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--ink);
+        color: var(--bone);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+
+      h1 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 2rem;
+        margin: 0 0 0.4rem;
+        letter-spacing: -0.03em;
+      }
+
+      .intro {
+        color: var(--bone-dim);
+        margin: 0 0 2rem;
+        line-height: 1.5;
+      }
+
+      .grid {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: linear-gradient(
+          165deg,
+          rgba(244, 241, 234, 0.05),
+          rgba(244, 241, 234, 0.015)
+        );
+        overflow: hidden;
+      }
+
+      .card__meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.78rem;
+        color: var(--bone-faint);
+      }
+
+      .card__meta strong {
+        color: var(--ember);
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .stage {
+        position: relative;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 1.75rem 1rem 1.5rem;
+        background:
+          radial-gradient(
+            420px 180px at 30% 20%,
+            rgba(255, 122, 69, 0.16),
+            transparent 60%
+          ),
+          radial-gradient(
+            360px 160px at 80% 30%,
+            rgba(124, 92, 255, 0.1),
+            transparent 55%
+          ),
+          var(--ink-2);
+      }
+
+      .avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        border: 2px solid rgba(244, 241, 234, 0.14);
+        object-fit: cover;
+        background: var(--ink-3);
+      }
+
+      .name {
+        font-family: var(--font-display);
+        font-size: 1.45rem;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+
+      /* ── A: Split metric ─────────────────────────────── */
+      .a-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        text-align: center;
+      }
+      .a-num {
+        font-family: var(--font-display);
+        font-size: 2.4rem;
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+        background: linear-gradient(100deg, var(--bone), var(--ember));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .a-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--bone-faint);
+      }
+
+      /* ── B: Platform constellation ───────────────────── */
+      .b-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.55rem;
+      }
+      .b-row {
+        display: flex;
+        gap: 0.4rem;
+      }
+      .b-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--ember);
+        opacity: 0.35;
+        box-shadow: 0 0 0 4px rgba(255, 122, 69, 0.08);
+      }
+      .b-dot:nth-child(2) {
+        opacity: 0.55;
+      }
+      .b-dot:nth-child(3) {
+        opacity: 1;
+        transform: scale(1.15);
+      }
+      .b-dot:nth-child(4) {
+        opacity: 0.55;
+      }
+      .b-dot:nth-child(5) {
+        opacity: 0.35;
+      }
+      .b-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--bone);
+      }
+      .b-text span {
+        color: var(--ember);
+      }
+
+      /* ── C: Ember underline ──────────────────────────── */
+      .c-wrap {
+        text-align: center;
+      }
+      .c-num {
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .c-num em {
+        font-style: normal;
+        color: var(--ember);
+      }
+      .c-rule {
+        width: 64px;
+        height: 2px;
+        margin: 0.55rem auto 0.45rem;
+        border-radius: 99px;
+        background: linear-gradient(90deg, transparent, var(--ember), transparent);
+      }
+      .c-sub {
+        font-size: 0.72rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--bone-faint);
+      }
+
+      /* ── D: Soft ribbon ──────────────────────────────── */
+      .d-ribbon {
+        position: relative;
+        padding: 0.55rem 1.4rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--bone);
+        background: rgba(255, 122, 69, 0.08);
+        border-block: 1px solid rgba(255, 122, 69, 0.28);
+      }
+      .d-ribbon span {
+        color: var(--ember);
+      }
+
+      /* ── E: Twin stack ───────────────────────────────── */
+      .e-wrap {
+        display: grid;
+        grid-template-columns: auto 1px auto;
+        align-items: center;
+        gap: 0.85rem;
+      }
+      .e-block {
+        text-align: center;
+      }
+      .e-num {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 1.55rem;
+        letter-spacing: -0.03em;
+        color: var(--ember);
+        line-height: 1;
+      }
+      .e-label {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.68rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--bone-faint);
+      }
+      .e-divider {
+        height: 34px;
+        background: var(--line-bright);
+      }
+
+      /* ── F: Orbit ring ───────────────────────────────── */
+      .f-wrap {
+        position: relative;
+        width: 118px;
+        height: 118px;
+        display: grid;
+        place-items: center;
+      }
+      .f-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1px dashed rgba(255, 122, 69, 0.35);
+        animation: spin 18s linear infinite;
+      }
+      .f-core {
+        text-align: center;
+        z-index: 1;
+      }
+      .f-num {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 1.55rem;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .f-sub {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--bone-faint);
+      }
+
+      /* ── G: Ticket stub ──────────────────────────────── */
+      .g-ticket {
+        display: inline-flex;
+        align-items: stretch;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--line-bright);
+        background: rgba(244, 241, 234, 0.03);
+      }
+      .g-left {
+        padding: 0.65rem 0.85rem;
+        background: linear-gradient(160deg, var(--ember), var(--ember-deep));
+        color: var(--ink);
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: -0.02em;
+        display: grid;
+        place-items: center;
+      }
+      .g-right {
+        padding: 0.55rem 0.9rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.1rem;
+      }
+      .g-right strong {
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .g-right span {
+        font-size: 0.68rem;
+        color: var(--bone-faint);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      /* ── H: Whisper caption ──────────────────────────── */
+      .h-wrap {
+        text-align: center;
+        max-width: 220px;
+      }
+      .h-line {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--bone-dim);
+        line-height: 1.35;
+      }
+      .h-line strong {
+        color: var(--ember);
+        font-weight: 700;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .f-ring {
+          animation: none;
+        }
+      }
+
+      .pick {
+        margin-top: 2rem;
+        padding: 1rem 1.1rem;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        color: var(--bone-dim);
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+      .pick code {
+        color: var(--ember);
+        font-size: 0.85em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Follower header concepts</h1>
+      <p class="intro">
+        Alternatives to the current pill chip. Same brand palette. Open this file
+        locally, pick a letter (A–H), and tell me which one to ship.
+      </p>
+
+      <div class="grid">
+        <!-- A -->
+        <article class="card">
+          <div class="card__meta"><strong>A · Gradient display</strong><span>Editorial / bold</span></div>
+          <div class="stage">
+            <div class="a-wrap">
+              <div class="a-num">500K+</div>
+              <div class="a-label">Across platforms</div>
+            </div>
+            <img class="avatar" src="../../public/portrait.webp" alt="" />
+            <p class="name">Adams Braimah</p>
+          </div>
+        </article>
+
+        <!-- B -->
+        <article class="card">
+          <div class="card__meta"><strong>B · Constellation</strong><span>Platform presence</span></div>
+          <div class="stage">
+            <div class="b-wrap">
+              <div class="b-row" aria-hidden="true">
+                <span class="b-dot"></span><span class="b-dot"></span><span class="b-dot"></span><span class="b-dot"></span><span class="b-dot"></span>
+              </div>
+              <p class="b-text"><span>500K+</span> across platforms</p>
+            </div>
+            <img class="avatar" src="../../public/portrait.webp" alt="" />
+            <p class="name">Adams Braimah</p>
+          </div>
+        </article>
+
+        <!-- C -->
+        <article class="card">
+          <div class="card__meta"><strong>C · Ember underline</strong><span>Quiet / premium</span></div>
+          <div class="stage">
+            <div class="c-wrap">
+              <div class="c-num"><em>500K+</em> audience</div>
+              <div class="c-rule"></div>
+              <div class="c-sub">Across platforms</div>
+            </div>
+            <img class="avatar" src="../../public/portrait.webp" alt="" />
+            <p class="name">Adams Braimah</p>
+          </div>
+        </article>
+
+        <!-- D -->
+        <article class="card">
+          <div class="card__meta"><strong>D · Soft ribbon</strong><span>Full-bleed band</span></div>
+          <div class="stage" style="padding-top: 0; gap: 1.1rem">
+            <div class="d-ribbon"><span>500K+</span> across platforms</div>
+            <img class="avatar" src="../../public/portrait.webp" alt="" />
+            <p class="name">Adams Braimah</p>
+          </div>
+        </article>
+
+        <!-- E -->
+        <article class="card">
+          <div class="card__meta"><strong>E · Twin stack</strong><span>Metric + platforms</span></div>
+          <div class="stage">
+            <div class="e-wrap">
+              <div class="e-block">
+                <span class="e-num">500K+</span>
+                <span class="e-label">Reach</span>
+              </div>
+              <div class="e-divider"></div>
+              <div class="e-block">
+                <span class="e-num">5</span>
+                <span class="e-label">Platforms</span>
+              </div>
+            </div>
+            <img class="avatar" src="../../public/portrait.webp" alt="" />
+            <p class="name">Adams Braimah</p>
+          </div>
+        </article>
+
+        <!-- F -->
+        <article class="card">
+          <div class="card__meta"><strong>F · Orbit ring</strong><span>Motion / mark</span></div>
+          <div class="stage">
+            <div class="f-wrap">
+              <span class="f-ring" aria-hidden="true"></span>
+              <div class="f-core">
+                <span class="f-num">500K+</span>
+                <span class="f-sub">Reach</span>
+              </div>
+            </div>
+            <img class="avatar" src="../../public/portrait.webp" alt="" />
+            <p class="name">Adams Braimah</p>
+          </div>
+        </article>
+
+        <!-- G -->
+        <article class="card">
+          <div class="card__meta"><strong>G · Ticket stub</strong><span>Bold / tactile</span></div>
+          <div class="stage">
+            <div class="g-ticket">
+              <div class="g-left">500K+</div>
+              <div class="g-right">
+                <strong>Total reach</strong>
+                <span>Across platforms</span>
+              </div>
+            </div>
+            <img class="avatar" src="../../public/portrait.webp" alt="" />
+            <p class="name">Adams Braimah</p>
+          </div>
+        </article>
+
+        <!-- H -->
+        <article class="card">
+          <div class="card__meta"><strong>H · Whisper line</strong><span>Minimal text</span></div>
+          <div class="stage">
+            <div class="h-wrap">
+              <p class="h-line">
+                Reaching <strong>500K+</strong> people across platforms
+              </p>
+            </div>
+            <img class="avatar" src="../../public/portrait.webp" alt="" />
+            <p class="name">Adams Braimah</p>
+          </div>
+        </article>
+      </div>
+
+      <p class="pick">
+        Reply with a letter, e.g. <code>Use C</code> or <code>Use E + mail icon</code>.
+        Brand inquiries mail icon is already being added on the live site.
+      </p>
+    </div>
+  </body>
+</html>

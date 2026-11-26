@@ -9,6 +9,7 @@ const ICONS = {
   snapchat: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3c2.7 0 4.4 1.8 4.4 4.3 0 .5 0 1.7.4 2.1.3.3.8.3 1.3.5.7.2 1.1.6 1.1 1.1 0 .6-.5 1-1.2 1.3-.3.1-.6.3-.6.6 0 .7.8 1.4 1.5 1.8.5.3.7.6.7 1 0 .7-.7 1.2-1.7 1.2-.4 0-.8-.1-1.2-.2-.5-.2-1-.3-1.5 0-.8.5-1.6 1.1-3.2 1.1s-2.4-.6-3.2-1.1c-.5-.3-1-.2-1.5 0-.4.1-.8.2-1.2.2-1 0-1.7-.5-1.7-1.2 0-.4.2-.7.7-1 .7-.4 1.5-1.1 1.5-1.8 0-.3-.3-.5-.6-.6-.7-.3-1.2-.7-1.2-1.3 0-.5.4-.9 1.1-1.1.5-.2 1-.2 1.3-.5.4-.4.4-1.6.4-2.1C7.6 4.8 9.3 3 12 3z"/></svg>`,
   chevron: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   arrow: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  mail: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M4.5 7.5 12 13l7.5-5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 };
 
 function escapeHtml(value) {
@@ -194,10 +195,13 @@ function renderCtas() {
   if (email) {
     parts.push(`
       <a
-        class="rise inline-flex min-h-[52px] items-center justify-center rounded-full border border-line-bright bg-transparent px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-bone transition hover:border-ember/45 hover:bg-ember/[0.08] active:scale-[0.985] [-webkit-tap-highlight-color:transparent]"
+        class="rise inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full border border-line-bright bg-transparent px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-bone transition hover:border-ember/45 hover:bg-ember/[0.08] active:scale-[0.985] [-webkit-tap-highlight-color:transparent]"
         style="--d:510ms"
         href="mailto:${escapeHtml(email)}"
-      >${escapeHtml(content.brandEmailLabel || "Brand inquiries")}</a>
+      >
+        <span class="grid h-5 w-5 place-items-center text-ember [&_svg]:h-[18px] [&_svg]:w-[18px]" aria-hidden="true">${ICONS.mail}</span>
+        ${escapeHtml(content.brandEmailLabel || "Brand inquiries")}
+      </a>
     `);
   }
 
