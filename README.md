@@ -47,6 +47,7 @@ Target: **Cloudflare Workers & Pages (Free)**
 
 - Build command: `npm run build`
 - Deploy command: `npx wrangler deploy`
+- Preview command: `npx wrangler preview`
 - Output directory: `./dist` (set in `wrangler.jsonc`, not always shown in the UI)
 - Production branch: `main`
 

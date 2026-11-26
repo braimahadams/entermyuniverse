@@ -46,6 +46,7 @@ In **entermyuniverse** → **Settings** → **Builds**:
 | Production branch | `main` |
 | Build command | `npm run build` |
 | Deploy command | `npx wrangler deploy` |
+| Preview command | `npx wrangler preview` |
 | Root directory | `/` |
 | Env vars | none |
 
