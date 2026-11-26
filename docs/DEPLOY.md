@@ -1,32 +1,34 @@
 # Deploy Enter My Universe (Cloudflare Pages)
 
-## Current DNS inventory (before cutover)
-
-Captured while nameservers still pointed at Vercel:
+## Current DNS inventory (as of 26 Nov 2026)
 
 | Record | Value |
 | --- | --- |
-| NS | `ns1.vercel-dns.com`, `ns2.vercel-dns.com` |
-| Apex A | `216.198.79.65`, `216.198.79.1` |
-| www A | `64.29.17.1`, `64.29.17.65` |
-| MX | none |
-| TXT | none |
+| NS | `launch1.spaceship.net`, `launch2.spaceship.net` |
+| Apex A | `216.198.79.1` (still pointing at old Vercel-era hosting) |
+| MX | `mx1.efwd.spaceship.net`, `mx2.efwd.spaceship.net` |
+| TXT (SPF) | `v=spf1 include:spf.efwd.spaceship.net ~all` |
 
-There is **no email** on this domain yet. Setting up `adams@entermyuniverse.com`
-requires DNS after Cloudflare is authoritative.
+**Brand email is already live** via Spaceship email forwarding:
 
-Do **not** change nameservers until the Pages preview is approved.
+`adams@entermyuniverse.com` → Adams’ Gmail (destination stays private)
+
+Website CTA already uses `mailto:adams@entermyuniverse.com`. Never publish the Gmail address in the repo.
+
+Do **not** change nameservers until the Pages preview is approved. When you do cut over, **preserve the Spaceship MX + SPF TXT** or mail will break.
 
 ---
 
-## 1. Push the preview branch
+## 1. Preview branch status
+
+Branch `portfolio-static` is pushed:
 
 ```bash
 cd ~/Desktop/entermyuniverse
 git push -u origin portfolio-static
 ```
 
-If `gh` is not logged in: `gh auth login` (GitHub.com → HTTPS → login).
+Repo: https://github.com/braimahadams/entermyuniverse/tree/portfolio-static
 
 ---
 
@@ -35,7 +37,7 @@ If `gh` is not logged in: `gh auth login` (GitHub.com → HTTPS → login).
 1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
 2. Select `braimahadams/entermyuniverse`.
 3. Project name: `entermyuniverse` (or similar).
-4. Production branch: leave as `main` for later; for now deploy **`portfolio-static`**.
+4. For preview, deploy branch **`portfolio-static`**.
 5. Build settings:
    - Framework preset: **None** / Vite
    - Build command: `npm run build`
@@ -60,18 +62,23 @@ Share that URL for review. No custom domain yet.
 
 1. Merge `portfolio-static` → `main` (only when you approve).
 2. In Pages → **Custom domains** → add `entermyuniverse.com` and `www.entermyuniverse.com`.
-3. Cloudflare will ask to change nameservers at the registrar from Vercel NS to Cloudflare NS. Copy the two Cloudflare nameservers Cloudflare shows for this zone.
+3. If Cloudflare asks for a nameserver change at Spaceship, copy the Cloudflare NS pair it shows.
 
-### Preserve records during NS move
+### Preserve email during NS / DNS moves
 
-Before switching NS:
+Before switching NS or rewriting apex records:
 
 1. Add the domain as a Cloudflare zone (if Pages did not already).
-2. Import / recreate needed records. Today there are no MX/TXT to preserve, but if any verification records appear later (Google, domain verify), copy them first.
-3. Pages custom domain usually creates the correct proxied records for the site.
+2. **Recreate these Spaceship email records first** (DNS only, orange-cloud / DNS-only, not proxied for MX):
+   - MX `@` → `mx1.efwd.spaceship.net` (priority 0)
+   - MX `@` → `mx2.efwd.spaceship.net` (priority 0)
+   - TXT `@` → `v=spf1 include:spf.efwd.spaceship.net ~all`
+3. Then attach Pages custom domains (proxied A/AAAA or CNAME as Cloudflare instructs).
 4. Add a **www → apex** redirect:
    - Pages: both hostnames attached, or
-   - Bulk Redirect / Redirect Rule: `www.entermyuniverse.com/*` → `https://entermyuniverse.com/$1` (301).
+   - Redirect Rule: `www.entermyuniverse.com/*` → `https://entermyuniverse.com/$1` (301).
+
+Do **not** enable Cloudflare Email Routing unless you intentionally migrate off Spaceship forwarding. Mixing both MX sets will break mail.
 
 ### HTTPS
 
@@ -83,21 +90,18 @@ Cloudflare provisions Universal SSL automatically for proxied hostnames. Confirm
 
 ---
 
-## 4. Brand email → Gmail (Cloudflare Email Routing)
+## 4. Brand email checklist
 
-Goal: `adams@entermyuniverse.com` forwards to your Gmail. Gmail never appears on the website or in GitHub.
+Already configured outside the website:
 
-1. Cloudflare → zone → **Email** → **Email Routing** → enable.
-2. Add destination address = your Gmail → confirm the verification email from Cloudflare.
-3. Create a custom address:
-   - Address: `adams@entermyuniverse.com`
-   - Action: Forward to your verified Gmail
-4. Cloudflare will add MX + TXT records for Email Routing automatically when the zone is on Cloudflare NS. Do not delete those.
-5. **Before launch:** from a different account (not Gmail itself), send a test message to `adams@entermyuniverse.com` and confirm it arrives in Gmail.
+- Address: `adams@entermyuniverse.com`
+- Forwarding: Spaceship → Gmail
+- Site button: `mailto:adams@entermyuniverse.com`
 
-Website button stays:
+Before launch (and again after any DNS cutover):
 
-`mailto:adams@entermyuniverse.com`
+1. From a different account (not Gmail itself), send a test to `adams@entermyuniverse.com`.
+2. Confirm it arrives in Gmail.
 
 ---
 
@@ -108,7 +112,8 @@ Website button stays:
 - [ ] Pages production deploy from `main` is green
 - [ ] Custom domains attached; HTTPS active
 - [ ] www redirects to apex
-- [ ] Email Routing verified; test mail received
+- [ ] Spaceship MX + SPF preserved (or intentionally migrated)
+- [ ] Test mail to `adams@entermyuniverse.com` still arrives
 - [ ] Portrait / socials / Cal.com / featured covers filled in `src/content.js`
 - [ ] Old Vercel project left idle or removed after traffic moves
 
@@ -116,4 +121,4 @@ Website button stays:
 
 ## Rollback note
 
-DNS NS change is the slow part (hours). Keep the Cloudflare Pages deployment and this Git branch even if you delay the registrar NS update. The static site has no database to migrate.
+DNS NS change is the slow part (hours). Keep the Cloudflare Pages deployment and this Git branch even if you delay the registrar NS update. The static site has no database to migrate. Email depends on MX — restore the Spaceship MX/SPF records first if mail stops.

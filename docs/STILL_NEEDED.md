@@ -11,10 +11,11 @@ pieces stay hidden (no placeholders).
 6. **Cal.com booking URL** for “Book a creator strategy call”
 7. **Up to 3 featured videos** — optimized vertical cover (`public/covers/…`) + original post URL; optional verified views or campaign name
 8. **Optional:** replace `public/og.png` with a share image that includes the real portrait after it exists
-9. **Cloudflare account** connected to the GitHub repo for the Pages preview
-10. **After DNS cutover:** enable Email Routing for `adams@entermyuniverse.com` → Gmail, then send a test from another account
+9. **Cloudflare Pages** connected to this GitHub repo (for the public `*.pages.dev` preview URL)
+10. **After any DNS cutover:** send a test to `adams@entermyuniverse.com` from another account and confirm it still hits Gmail
 
 Already configured:
 
 - Brand inquiries → `mailto:adams@entermyuniverse.com`
+- Spaceship email forwarding for that address (MX + SPF live)
 - ScoutViral card → `https://scoutviral.com`
