@@ -1,18 +1,10 @@
 node_modules
-.next
-out
-build
+dist
 .DS_Store
-*.pem
-npm-debug.log*
+*.local
 .env
-.env*.local
-# Personal deploy notes — contains the live database credential.
-DEPLOY.md
+.env.*
+!.env.example
 .vercel
-next-env.d.ts
-*.tsbuildinfo
-prisma/dev.db
-prisma/dev.db-journal
-/public/media/*
-!/public/media/.gitkeep
+.wrangler
+.cloudflare
