@@ -20,17 +20,20 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-function formatFollowers(n) {
+function formatAudience(social) {
+  if (social?.audienceLabel?.trim()) return social.audienceLabel.trim();
+  const n = social?.followers;
   if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) return "";
+  const unit = social?.id === "youtube" ? "subscribers" : "followers";
   if (n >= 1_000_000) {
     const v = n / 1_000_000;
-    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}M followers`;
+    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}M+ ${unit}`;
   }
   if (n >= 1_000) {
     const v = n / 1_000;
-    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}K followers`;
+    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}K+ ${unit}`;
   }
-  return `${n.toLocaleString("en-US")} followers`;
+  return `${n.toLocaleString("en-US")} ${unit}`;
 }
 
 function totalChipLabel() {
@@ -100,7 +103,7 @@ function renderSocials() {
 
   const rows = items
     .map((social, index) => {
-      const followers = formatFollowers(social.followers);
+      const audience = formatAudience(social);
       const icon = ICONS[social.id] || ICONS.chevron;
       return `
         <li class="rise" style="--d:${140 + index * 55}ms">
@@ -109,14 +112,14 @@ function renderSocials() {
             href="${escapeHtml(social.url.trim())}"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="${escapeHtml(social.label)}${followers ? ` — ${followers}` : ""}"
+            aria-label="${escapeHtml(social.label)}${audience ? ` — ${audience}` : ""}"
           >
             <span class="icon-pop grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-ink-3/80 text-bone [&_svg]:h-[22px] [&_svg]:w-[22px]">
               ${icon}
             </span>
             <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
               <span class="text-[1.02rem] font-semibold tracking-[-0.015em]">${escapeHtml(social.label)}</span>
-              ${followers ? `<span class="text-[0.78rem] font-medium text-bone-faint">${escapeHtml(followers)}</span>` : `<span class="text-[0.78rem] font-medium text-bone-faint">Open profile</span>`}
+              ${audience ? `<span class="text-[0.78rem] font-medium text-bone-faint">${escapeHtml(audience)}</span>` : `<span class="text-[0.78rem] font-medium text-bone-faint">Open profile</span>`}
             </span>
             <span class="shrink-0 text-bone-faint [&_svg]:h-[18px] [&_svg]:w-[18px]">${ICONS.chevron}</span>
           </a>
