@@ -6,10 +6,9 @@
   "compatibility_date": "2026-11-26",
   "workers_dev": true,
   "preview_urls": true,
-  "routes": [
-    { "pattern": "entermyuniverse.com", "custom_domain": true },
-    { "pattern": "www.entermyuniverse.com", "custom_domain": true }
-  ],
+  // Attach entermyuniverse.com / www in the Cloudflare dashboard after the
+  // zone is Active (see docs/GO_LIVE.md). Do not add custom_domain routes here
+  // until then — deploys fail if the zone is not on this Cloudflare account.
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"
