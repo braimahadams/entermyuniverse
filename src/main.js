@@ -140,9 +140,15 @@ function renderFeatured() {
   const cards = videos
     .slice(0, 3)
     .map((video, index) => {
+      const views =
+        typeof video.views === "number" && video.views > 0
+          ? formatAudience({ followers: video.views, audienceLabel: "" }).replace(
+              /followers|subscribers/g,
+              "views",
+            )
+          : "";
       const badge =
-        (video.campaign && String(video.campaign).trim()) ||
-        formatFollowers(video.views).replace(" followers", " views");
+        (video.campaign && String(video.campaign).trim()) || views;
       const title = video.title?.trim() || "Featured video";
       return `
         <a
