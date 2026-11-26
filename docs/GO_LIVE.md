@@ -1,80 +1,95 @@
 # Go live on entermyuniverse.com
 
-Worker is ready:
+Worker (already built):
 
 https://entermyuniverse.braimahadams01.workers.dev
 
-Custom domains for Workers require the domain as a **Cloudflare zone**.
-Today DNS is still on **Spaceship**. Email forwarding is live — preserve it.
+The Worker lives under **Workers & Pages**, not under the domain zone until
+you connect it. The domain zone stays **Pending** until Spaceship nameservers
+point at Cloudflare.
 
-## Do this in order
+## Right now (your Cloudflare screens)
 
-### 1. Add the domain in Cloudflare
+DNS records look correct for email:
 
-1. Cloudflare Dashboard → **Account home** → **Add a domain** / **Websites** → **Add a site**
-2. Enter `entermyuniverse.com` → Free plan
-3. Let Cloudflare scan DNS
-4. **Before changing nameservers**, open **DNS → Records** and confirm these exist (add if missing). Set MX/TXT to **DNS only** (grey cloud):
+- MX → Spaceship forwarding (DNS only) — keep
+- TXT SPF — keep
+- `www` CNAME → apex — keep
+- Old apex **A** `216.198.79.1` — delete it (blank site during cutover is fine)
 
-| Type | Name | Content | Proxy |
-| --- | --- | --- | --- |
-| MX | `@` | `mx1.efwd.spaceship.net` (priority 0) | DNS only |
-| MX | `@` | `mx2.efwd.spaceship.net` (priority 0) | DNS only |
-| TXT | `@` | `v=spf1 include:spf.efwd.spaceship.net ~all` | DNS only |
+### Why you don’t see the Worker on the domain page
 
-5. Cloudflare will show **two nameservers** (look like `*.ns.cloudflare.com`). Copy them.
+**No Workers connected** is normal while the zone is Pending.
 
-### 2. Point Spaceship nameservers at Cloudflare
+Your Worker `entermyuniverse` is still here:
 
-1. Spaceship → Domains → `entermyuniverse.com` → DNS / Nameservers
-2. Turn **DNSSEC off** if it is on (turn it back on later via Cloudflare if you want)
-3. Switch from Spaceship nameservers to **Custom**
-4. Paste the two Cloudflare nameservers → Save
-5. Wait until Cloudflare marks the zone **Active** (often minutes; can be longer)
+**Workers & Pages** → **entermyuniverse**
 
-Keep Spaceship as the **registrar**. Only DNS authority moves.
+Connect it only after the zone is **Active** (step 3).
 
-### 3. Attach the Worker to the domain
+---
 
-1. Cloudflare → **Workers & Pages** → **entermyuniverse**
-2. **Domains** / **Triggers** → **Add** / **Custom Domain**
-3. Add:
-   - `entermyuniverse.com`
-   - `www.entermyuniverse.com`
-4. Cloudflare creates the DNS + SSL for the Worker automatically
-5. Remove any leftover **Vercel** A/CNAME records for `@` / `www` if they still point at `216.198.79.x` or Vercel
+## 1. Finish nameservers at Spaceship (required)
 
-### 4. www → apex redirect
+Cloudflare assigned:
 
-In the Cloudflare zone for `entermyuniverse.com`:
+- `addyson.ns.cloudflare.com`
+- `miles.ns.cloudflare.com`
 
-**Rules** → **Redirect Rules** → Create rule
+At Spaceship → Domains → `entermyuniverse.com` → Nameservers:
 
-- If: Hostname equals `www.entermyuniverse.com`
-- Then: Dynamic redirect to `https://entermyuniverse.com/${1}` (or Static `https://entermyuniverse.com`)
-- Status: `301`
+1. Turn **DNSSEC off** if it is on
+2. Replace Spaceship NS (`launch1` / `launch2`) with the two Cloudflare NS above
+3. Save
 
-Or attach both hostnames to the Worker and add a redirect rule as above.
+Wait until Cloudflare Overview says **Active** (minutes to a few hours).
 
-### 5. Verify
+---
 
-- [ ] https://entermyuniverse.com shows the new portfolio (portrait, 500K+, socials)
-- [ ] https://www.entermyuniverse.com redirects to apex
-- [ ] Certificate is valid (padlock)
-- [ ] From a **non-Gmail** account, email `adams@entermyuniverse.com` and confirm it still hits Gmail
-- [ ] Optional: disconnect the old Vercel Git project so it stops failing builds
+## 2. Clean apex DNS in Cloudflare (optional now, required before attach)
 
-### 6. Tell me when zone is Active
+In the zone → **DNS → Records**:
 
-Paste:
+1. **Delete** the A record `entermyuniverse.com` → `216.198.79.1`
+2. Keep both MX + TXT
+3. Keep `www` CNAME
 
-1. The two Cloudflare nameservers you set, or  
-2. “Zone active + domains attached”
+---
 
-I will re-check public DNS and the live site from here.
+## 3. Connect the existing Worker (after Active)
 
-## Do not
+Either path works:
 
-- Do not enable **Cloudflare Email Routing** while Spaceship forwarding MX is in use
-- Do not delete the Spaceship MX/SPF records
-- Do not leave the old Vercel A record as the only apex record after the Worker domain is attached
+**A — From the Worker**
+
+1. **Workers & Pages** → **entermyuniverse**
+2. **Domains** / **Triggers** → **Add Custom Domain**
+3. Add `entermyuniverse.com`
+4. Add `www.entermyuniverse.com`
+
+**B — From the domain Overview**
+
+1. Domain Overview → **Connect Worker**
+2. Choose **entermyuniverse**
+3. Confirm apex + www
+
+Cloudflare creates the DNS + SSL for the Worker.
+
+---
+
+## 4. www → apex redirect
+
+**Rules** → **Redirect Rules** → Create:
+
+- If hostname equals `www.entermyuniverse.com`
+- Then 301 to `https://entermyuniverse.com`
+
+---
+
+## 5. Verify
+
+- [ ] https://entermyuniverse.com shows the portfolio
+- [ ] www redirects to apex
+- [ ] Test email to `adams@entermyuniverse.com` from a non-Gmail account
+
+Do **not** enable Cloudflare Email Routing while Spaceship MX is in use.
