@@ -4,6 +4,7 @@
  * Rules enforced by main.js:
  * - Social rows render only when `url` is set
  * - Audience counts render only when `followers` is a positive number
+ * - Total audience chip renders when `totalFollowersLabel` or `totalFollowers` is set
  * - Featured videos render only when both `cover` and `url` are set
  * - Book CTA renders only when `bookCallUrl` is set
  * - Brand email and ScoutViral card always render
@@ -17,53 +18,49 @@ export const content = {
   siteUrl: "https://entermyuniverse.com",
   metaTitle: "Adams Braimah — Enter My Universe",
   metaDescription:
-    "Creator portfolio and links for Adams Braimah. Find Instagram, TikTok, YouTube, and Facebook in one place — plus ScoutViral.",
+    "Creator portfolio and links for Adams Braimah. Find Instagram, TikTok, YouTube, Facebook, and Snapchat in one place — plus ScoutViral.",
 
-  /** Set to "/portrait.webp" after adding public/portrait.webp */
-  portrait: "",
+  portrait: "/portrait.webp",
+
+  /** Approved cross-platform audience chip */
+  totalFollowers: 500_000,
+  totalFollowersLabel: "500K+",
 
   socials: [
     {
       id: "instagram",
       label: "Instagram",
-      url: "",
+      url: "https://www.instagram.com/braimahadams",
       followers: null,
     },
     {
       id: "tiktok",
       label: "TikTok",
-      url: "",
+      url: "https://www.tiktok.com/@braimahadams",
       followers: null,
     },
     {
       id: "youtube",
       label: "YouTube",
-      url: "",
+      url: "https://www.youtube.com/@braimahadams",
       followers: null,
     },
     {
       id: "facebook",
       label: "Facebook",
-      url: "",
+      url: "https://www.facebook.com/braimahadams001",
+      followers: null,
+    },
+    {
+      id: "snapchat",
+      label: "Snapchat",
+      url: "https://www.snapchat.com/t/RvRPW9dq",
       followers: null,
     },
   ],
 
-  /**
-   * Up to three items. Each needs cover + url to appear.
-   * Optional: views (number) or campaign (string) when verified.
-   */
-  featuredVideos: [
-    // {
-    //   title: "Campaign name",
-    //   cover: "/covers/one.webp",
-    //   url: "https://www.instagram.com/reel/…",
-    //   views: null,
-    //   campaign: "",
-    // },
-  ],
+  featuredVideos: [],
 
-  /** Cal.com booking page — leave empty until live */
   bookCallUrl: "",
   bookCallLabel: "Book a creator strategy call",
 
@@ -73,6 +70,7 @@ export const content = {
   scoutviral: {
     role: "Founder & CEO",
     title: "ScoutViral",
+    logo: "/scoutviral-logo.png",
     body: "I built ScoutViral to help creators find proven viral Shorts by country and niche, rank a channel’s top videos, and save ideas to recreate in their own style.",
     url: "https://scoutviral.com",
     cta: "Explore ScoutViral",
