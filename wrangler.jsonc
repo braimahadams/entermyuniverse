@@ -3,6 +3,8 @@
   // Build output lives in dist/; deploy with: npx wrangler deploy
   "name": "entermyuniverse",
   "compatibility_date": "2026-11-26",
+  "workers_dev": true,
+  "preview_urls": true,
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"

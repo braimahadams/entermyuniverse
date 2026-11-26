@@ -52,9 +52,14 @@ In **entermyuniverse** → **Settings** → **Builds**:
 
 You do **not** need a separate output-directory field in the UI.
 
-Then **Retry deployment** from `main`. A green build should publish to
-`entermyuniverse.<workers/pages host>` / your project’s `*.workers.dev` or
-`*.pages.dev` URL shown on the Overview tab.
+Then **Retry deployment** from `main`.
+
+Live Workers URL (production deploy):
+
+https://entermyuniverse.braimahadams01.workers.dev
+
+Custom domain `entermyuniverse.com` still points at old Vercel until you
+attach it under **Domains** and cut DNS over (keep Spaceship MX/SPF).
 
 ---
 
