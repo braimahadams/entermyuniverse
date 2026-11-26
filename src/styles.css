@@ -187,18 +187,17 @@
   }
 }
 
-@keyframes count-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 122, 69, 0.15);
-  }
-  50% {
-    box-shadow: 0 0 24px 2px rgba(255, 122, 69, 0.18);
-  }
-}
-
-.total-chip {
-  animation: count-glow 5s ease-in-out infinite;
+.total-display {
+  background: linear-gradient(
+    100deg,
+    var(--color-bone) 0%,
+    var(--color-bone) 38%,
+    var(--color-gold) 68%,
+    var(--color-ember) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -65,11 +65,14 @@ function renderTotal() {
   const label = totalChipLabel();
   if (!label) return "";
   return `
-    <div class="rise mb-4 flex justify-center" style="--d:20ms">
-      <p class="total-chip inline-flex items-center gap-2 rounded-full border border-line-bright/80 bg-bone/[0.04] px-4 py-1.5 text-[0.72rem] font-semibold tracking-[0.18em] text-ember uppercase">
-        <span class="h-1.5 w-1.5 rounded-full bg-ember" aria-hidden="true"></span>
-        ${escapeHtml(label)}
-        <span class="tracking-[0.12em] text-bone-faint normal-case">across platforms</span>
+    <div class="rise mb-5 flex justify-center" style="--d:20ms">
+      <p class="m-0 flex flex-col items-center gap-1.5 text-center">
+        <span class="total-display font-[family-name:var(--font-display)] text-[clamp(2.1rem,8vw,2.55rem)] leading-none tracking-[-0.04em]">
+          ${escapeHtml(label)}
+        </span>
+        <span class="text-[0.72rem] font-semibold tracking-[0.2em] text-bone-faint uppercase">
+          Across platforms
+        </span>
       </p>
     </div>
   `;
