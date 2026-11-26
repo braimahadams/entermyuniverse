@@ -4,9 +4,8 @@ Personal creator portfolio and link-in-bio for **Adams Braimah**.
 
 Domain: [entermyuniverse.com](https://entermyuniverse.com)
 
-This branch replaces the old Next.js / Prisma / Stripe creator platform with a
-static Vite site. The previous app remains in Git history on `main` until you
-approve the cutover.
+Static Vite creator portfolio. The old Next.js / Prisma / Stripe platform was
+removed from `main` and only exists in earlier Git history.
 
 ## Local
 

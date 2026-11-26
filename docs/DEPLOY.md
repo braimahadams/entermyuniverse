@@ -19,48 +19,42 @@ Do **not** change nameservers until the Pages preview is approved. When you do c
 
 ---
 
-## 1. Preview branch status
+## 1. Production branch
 
-Branch `portfolio-static` is pushed:
+`main` is the static portfolio (Vite). Redeploy from **`main`** only.
 
 ```bash
 cd ~/Desktop/entermyuniverse
-git push -u origin portfolio-static
+git checkout main
+git pull
 ```
 
-Repo: https://github.com/braimahadams/entermyuniverse/tree/portfolio-static
+Repo: https://github.com/braimahadams/entermyuniverse
 
 ---
 
-## 2. Create a Cloudflare Pages project (preview)
+## 2. Cloudflare Pages build settings
 
-1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-2. Select `braimahadams/entermyuniverse`.
-3. Project name: `entermyuniverse` (or similar).
-4. For preview, deploy branch **`portfolio-static`**.
-5. Build settings:
-   - Framework preset: **None** / Vite
-   - Build command: `npm run build`
-   - Build output directory: `dist`
-   - Root directory: `/`
-6. Environment variables: **none** (site has zero secrets).
-7. Save and deploy.
+In **entermyuniverse** → **Settings** → **Builds**:
 
-Cloudflare will print a preview URL similar to:
+| Setting | Value |
+| --- | --- |
+| Production branch | `main` |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Root directory | `/` |
+| Deploy command | **empty** (remove `npx wrangler deploy`) |
+| Env vars | none |
 
-`https://portfolio-static.entermyuniverse.pages.dev`
+Then **Retry deployment** / create a new deployment from `main`.
 
-or
-
-`https://<hash>.entermyuniverse.pages.dev`
-
-Share that URL for review. No custom domain yet.
+You should get a `*.pages.dev` URL when the build is green.
 
 ---
 
 ## 3. After preview approval — connect the root domain
 
-1. Merge `portfolio-static` → `main` (only when you approve).
+1. Confirm Pages production deploy from `main` is green.
 2. In Pages → **Custom domains** → add `entermyuniverse.com` and `www.entermyuniverse.com`.
 3. If Cloudflare asks for a nameserver change at Spaceship, copy the Cloudflare NS pair it shows.
 
@@ -107,8 +101,6 @@ Before launch (and again after any DNS cutover):
 
 ## 5. Cutover checklist
 
-- [ ] Preview approved
-- [ ] `portfolio-static` merged to `main`
 - [ ] Pages production deploy from `main` is green
 - [ ] Custom domains attached; HTTPS active
 - [ ] www redirects to apex
