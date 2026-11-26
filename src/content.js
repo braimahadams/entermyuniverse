@@ -13,7 +13,7 @@
 
 export const content = {
   name: "Adams Braimah",
-  tagline: "It's all in the mind.",
+  tagline: "",
   siteUrl: "https://entermyuniverse.com",
   metaTitle: "Adams Braimah — Enter My Universe",
   metaDescription:

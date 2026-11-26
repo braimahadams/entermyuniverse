@@ -64,7 +64,7 @@ function renderHero() {
     <header class="hero rise" style="--d:40ms">
       <div class="portrait-wrap">${media}</div>
       <h1 class="hero__name">${escapeHtml(content.name)}</h1>
-      <p class="hero__tagline">${escapeHtml(content.tagline)}</p>
+      ${content.tagline?.trim() ? `<p class="hero__tagline">${escapeHtml(content.tagline.trim())}</p>` : ""}
     </header>
   `;
 }
