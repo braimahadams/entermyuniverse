@@ -76,7 +76,7 @@ export const content = {
     role: "Founder & CEO",
     title: "ScoutViral",
     logo: "/scoutviral-logo.png",
-    body: "I built ScoutViral to help creators find proven viral Shorts by country and niche, rank a channel’s top videos, and save ideas to recreate in their own style.",
+    body: "ScoutViral helps you scout proven viral Shorts from any creator, country, or language — then save what fits and recreate it for your own audience. Grow your channel and earn from it.",
     url: "https://scoutviral.com",
     cta: "Explore ScoutViral",
   },
