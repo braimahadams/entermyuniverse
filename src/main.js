@@ -286,8 +286,11 @@ function renderBooking() {
   const bookings = (content.booking || []).filter((b) => b?.url?.trim());
   if (!bookings.length) return "";
 
+  const title = content.bookingTitle?.trim() || "Consultation";
+  const blurb = content.bookingBlurb?.trim();
+
   const parts = bookings.map((booking, index) => {
-    const label = booking.label?.trim() || "Book a call";
+    const label = booking.label?.trim() || "Strategy call";
     const price = booking.priceLabel?.trim();
     const text = price ? `${label} — ${price}` : label;
     const isPrimary =
@@ -308,7 +311,19 @@ function renderBooking() {
     `;
   });
 
-  return `<div class="mb-6 flex flex-col gap-3">${parts.join("")}</div>`;
+  return `
+    <section class="mb-6" aria-labelledby="booking-heading">
+      <div class="rise mb-3 text-center" style="--d:560ms">
+        <h2 id="booking-heading" class="m-0 text-[0.7rem] font-semibold tracking-[0.18em] text-bone-faint uppercase">${escapeHtml(title)}</h2>
+        ${
+          blurb
+            ? `<p class="mx-auto mt-2 mb-0 max-w-[34ch] text-[0.88rem] leading-snug text-bone-dim">${escapeHtml(blurb)}</p>`
+            : ""
+        }
+      </div>
+      <div class="flex flex-col gap-3">${parts.join("")}</div>
+    </section>
+  `;
 }
 
 function renderScoutViral() {

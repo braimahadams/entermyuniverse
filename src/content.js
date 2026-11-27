@@ -67,18 +67,21 @@ export const content = {
   featuredVideos: [],
 
   /**
-   * Paid Cal.com events (Stripe checkout on Cal.com).
+   * Paid Cal.com consultation calls (Stripe on Cal.com).
+   * Independent of ScoutViral — personal strategy advice only.
    * Keep Discover off in Cal.com — site uses these direct links only.
    */
+  bookingTitle: "Consultation",
+  bookingBlurb: "",
   booking: [
     {
-      label: "Book 30 min",
+      label: "30 min strategy call",
       priceLabel: "$19.99",
       url: "https://cal.com/braimahadams/30min",
       primary: true,
     },
     {
-      label: "Book 60 min",
+      label: "60 min strategy call",
       priceLabel: "$34.99",
       url: "https://cal.com/braimahadams/60min",
       primary: false,
