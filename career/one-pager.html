@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Adams Braimah — Creator One-Pager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #07070a;
+        --ink-2: #0c0c11;
+        --ink-3: #14141b;
+        --bone: #f4f1ea;
+        --bone-dim: #a8a49c;
+        --bone-faint: #6b6862;
+        --ember: #ff7a45;
+        --ember-deep: #e2542a;
+        --gold: #ffb26b;
+        --line: rgba(244, 241, 234, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--ink);
+        color: var(--bone);
+        font-family: "DM Sans", system-ui, sans-serif;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .sheet {
+        width: 210mm;
+        min-height: 297mm;
+        padding: 14mm 16mm 14mm;
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(
+            520px 280px at 12% 8%,
+            rgba(255, 122, 69, 0.18),
+            transparent 60%
+          ),
+          radial-gradient(
+            460px 260px at 92% 18%,
+            rgba(124, 92, 255, 0.12),
+            transparent 55%
+          ),
+          var(--ink);
+      }
+
+      .display {
+        font-family: "Instrument Serif", Georgia, serif;
+        font-weight: 400;
+        letter-spacing: -0.03em;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 34mm 1fr;
+        gap: 8mm;
+        align-items: center;
+        margin-bottom: 8mm;
+      }
+
+      .portrait {
+        width: 34mm;
+        height: 34mm;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1.5px solid rgba(244, 241, 234, 0.16);
+        box-shadow: 0 0 0 5px rgba(255, 122, 69, 0.12);
+      }
+
+      .reach {
+        font-family: "Instrument Serif", Georgia, serif;
+        font-size: 15mm;
+        line-height: 0.92;
+        letter-spacing: -0.04em;
+        margin: 0 0 2mm;
+        background: linear-gradient(
+          100deg,
+          var(--bone) 0%,
+          var(--bone) 40%,
+          var(--gold) 70%,
+          var(--ember) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .reach-label {
+        margin: 0 0 3mm;
+        font-size: 2.8mm;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--bone-faint);
+        font-weight: 600;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 9mm;
+        line-height: 1;
+      }
+
+      .contact {
+        margin-top: 3mm;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2.5mm 5mm;
+        font-size: 3.2mm;
+        color: var(--bone-dim);
+      }
+
+      .contact a {
+        color: var(--bone);
+        text-decoration: none;
+      }
+
+      .summary {
+        margin: 0 0 8mm;
+        padding: 5mm 5.5mm;
+        border: 1px solid var(--line);
+        border-radius: 4mm;
+        background: linear-gradient(
+          165deg,
+          rgba(244, 241, 234, 0.05),
+          rgba(244, 241, 234, 0.015)
+        );
+      }
+
+      .summary h2 {
+        margin: 0 0 2.5mm;
+        font-size: 2.7mm;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ember);
+        font-weight: 700;
+      }
+
+      .summary p {
+        margin: 0;
+        font-size: 4mm;
+        line-height: 1.45;
+        color: var(--bone);
+        font-weight: 500;
+      }
+
+      .section-title {
+        margin: 0 0 3.5mm;
+        font-size: 2.7mm;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--bone-faint);
+        font-weight: 700;
+      }
+
+      .socials {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3mm;
+        margin-bottom: 8mm;
+      }
+
+      .social {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 3mm;
+        padding: 3.2mm 3.8mm;
+        border: 1px solid var(--line);
+        border-radius: 3mm;
+        background: rgba(244, 241, 234, 0.03);
+      }
+
+      .social strong {
+        font-size: 3.5mm;
+        font-weight: 700;
+      }
+
+      .social span {
+        font-size: 3mm;
+        color: var(--bone-faint);
+        font-weight: 600;
+      }
+
+      .project {
+        display: grid;
+        grid-template-columns: 14mm 1fr;
+        gap: 4.5mm;
+        padding: 5mm;
+        border: 1px solid var(--line);
+        border-radius: 4.5mm;
+        background: linear-gradient(
+          165deg,
+          rgba(244, 241, 234, 0.055),
+          rgba(244, 241, 234, 0.015)
+        );
+        margin-bottom: 8mm;
+      }
+
+      .logo {
+        width: 14mm;
+        height: 14mm;
+        border-radius: 3mm;
+        object-fit: cover;
+        border: 1px solid var(--line);
+      }
+
+      .eyebrow {
+        margin: 0 0 1.5mm;
+        font-size: 2.5mm;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ember);
+        font-weight: 700;
+      }
+
+      .project h3 {
+        margin: 0;
+        font-size: 6.5mm;
+        line-height: 1;
+      }
+
+      .project p {
+        margin: 2.5mm 0 0;
+        font-size: 3.4mm;
+        line-height: 1.45;
+        color: var(--bone-dim);
+      }
+
+      .skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2mm;
+        margin-bottom: 8mm;
+      }
+
+      .skill {
+        padding: 2mm 3.2mm;
+        border-radius: 99px;
+        border: 1px solid rgba(255, 122, 69, 0.28);
+        background: rgba(255, 122, 69, 0.08);
+        color: var(--bone);
+        font-size: 2.9mm;
+        font-weight: 600;
+      }
+
+      .footer {
+        position: absolute;
+        left: 16mm;
+        right: 16mm;
+        bottom: 10mm;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 2.8mm;
+        color: var(--bone-faint);
+        border-top: 1px solid var(--line);
+        padding-top: 3.5mm;
+      }
+
+      .footer strong {
+        color: var(--ember);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <header class="hero">
+        <img class="portrait" src="../public/portrait.jpg" alt="Adams Braimah" />
+        <div>
+          <p class="reach">500K+</p>
+          <p class="reach-label">Across platforms</p>
+          <h1 class="display">Adams Braimah</h1>
+          <div class="contact">
+            <a href="mailto:adams@entermyuniverse.com">adams@entermyuniverse.com</a>
+            <a href="https://entermyuniverse.com">entermyuniverse.com</a>
+            <a href="https://scoutviral.com">scoutviral.com</a>
+          </div>
+        </div>
+      </header>
+
+      <section class="summary">
+        <h2>Summary</h2>
+        <p>
+          I have over 3 years of experience making short-form videos. I create,
+          edit, and grow content across TikTok, Instagram, YouTube, Facebook, and
+          Snapchat — with 500K+ combined audience reach — and I founded ScoutViral
+          to help creators find proven viral ideas they can recreate.
+        </p>
+      </section>
+
+      <h2 class="section-title">Audience</h2>
+      <div class="socials">
+        <div class="social"><strong>TikTok</strong><span>295K+ followers</span></div>
+        <div class="social"><strong>Facebook</strong><span>170K+ followers</span></div>
+        <div class="social"><strong>Instagram</strong><span>70K+ followers</span></div>
+        <div class="social"><strong>YouTube</strong><span>24K+ subscribers</span></div>
+        <div class="social"><strong>Snapchat</strong><span>10K+ followers</span></div>
+        <div class="social"><strong>Portfolio</strong><span>entermyuniverse.com</span></div>
+      </div>
+
+      <h2 class="section-title">Product</h2>
+      <section class="project">
+        <img class="logo" src="../public/scoutviral-logo.png" alt="ScoutViral" />
+        <div>
+          <p class="eyebrow">Founder &amp; CEO</p>
+          <h3 class="display">ScoutViral</h3>
+          <p>
+            ScoutViral helps creators scout proven viral Shorts from any creator,
+            country, or language — then save what fits and recreate it for their
+            own audience. Grow your channel and earn from it.
+          </p>
+        </div>
+      </section>
+
+      <h2 class="section-title">Skills</h2>
+      <div class="skills">
+        <span class="skill">Short-form video</span>
+        <span class="skill">Content strategy</span>
+        <span class="skill">Viral research</span>
+        <span class="skill">Creator growth</span>
+        <span class="skill">Editing &amp; storytelling</span>
+        <span class="skill">Multi-platform publishing</span>
+        <span class="skill">Brand collaboration</span>
+      </div>
+
+      <footer class="footer">
+        <span>Creator one-pager</span>
+        <span><strong>Adams Braimah</strong> · entermyuniverse.com</span>
+      </footer>
+    </div>
+  </body>
+</html>
