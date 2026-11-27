@@ -21,35 +21,102 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function easeOutExpo(t) {
+  return t === 1 ? 1 : 1 - 2 ** (-10 * t);
+}
+
+function formatCompact(n) {
+  const value = Math.max(0, Number(n) || 0);
+  if (value >= 1_000_000) {
+    const v = value / 1_000_000;
+    return `${v >= 10 || Number.isInteger(v) ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}M+`;
+  }
+  if (value >= 1_000) {
+    const v = value / 1_000;
+    return `${v >= 10 || Number.isInteger(v) ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}K+`;
+  }
+  return `${Math.round(value)}`;
+}
+
+function audienceUnit(social) {
+  return social?.id === "youtube" ? "subscribers" : "followers";
+}
+
 function formatAudience(social) {
   if (social?.audienceLabel?.trim()) return social.audienceLabel.trim();
   const n = social?.followers;
   if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) return "";
-  const unit = social?.id === "youtube" ? "subscribers" : "followers";
-  if (n >= 1_000_000) {
-    const v = n / 1_000_000;
-    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}M+ ${unit}`;
-  }
-  if (n >= 1_000) {
-    const v = n / 1_000;
-    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}K+ ${unit}`;
-  }
-  return `${n.toLocaleString("en-US")} ${unit}`;
+  return `${formatCompact(n)} ${audienceUnit(social)}`;
 }
 
 function totalChipLabel() {
   if (content.totalFollowersLabel?.trim()) return content.totalFollowersLabel.trim();
   const n = content.totalFollowers;
   if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) return "";
-  if (n >= 1_000_000) {
-    const v = n / 1_000_000;
-    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}M+`;
+  return formatCompact(n);
+}
+
+function animateCount(el, target, { duration = 1400, delay = 0, suffix = "", finalLabel = null } = {}) {
+  if (!el) return;
+
+  const finish = () => {
+    el.textContent = finalLabel || `${formatCompact(target)}${suffix}`;
+    el.classList.add("is-settling");
+  };
+
+  if (prefersReducedMotion() || !(target > 0)) {
+    finish();
+    return;
   }
-  if (n >= 1_000) {
-    const v = n / 1_000;
-    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, "")}K+`;
+
+  el.textContent = `0${suffix}`;
+  const startAt = performance.now() + delay;
+
+  const frame = (now) => {
+    if (now < startAt) {
+      requestAnimationFrame(frame);
+      return;
+    }
+    const t = Math.min(1, (now - startAt) / duration);
+    const value = target * easeOutExpo(t);
+    if (t < 1) {
+      el.textContent = `${formatCompact(value)}${suffix}`;
+      requestAnimationFrame(frame);
+      return;
+    }
+    finish();
+  };
+
+  requestAnimationFrame(frame);
+}
+
+function initCountUps() {
+  const totalEl = document.querySelector("[data-count-total]");
+  if (totalEl) {
+    const target = Number(totalEl.dataset.countTotal) || 0;
+    const finalLabel = totalEl.dataset.countFinal || totalChipLabel();
+    animateCount(totalEl, target, {
+      duration: 1600,
+      delay: 180,
+      finalLabel,
+    });
   }
-  return `${n.toLocaleString("en-US")}+`;
+
+  document.querySelectorAll("[data-count-followers]").forEach((el, index) => {
+    const target = Number(el.dataset.countFollowers) || 0;
+    const unit = el.dataset.countUnit || "followers";
+    const finalLabel = el.dataset.countFinal || `${formatCompact(target)} ${unit}`;
+    animateCount(el, target, {
+      duration: 1200,
+      delay: 420 + index * 90,
+      suffix: ` ${unit}`,
+      finalLabel,
+    });
+  });
 }
 
 function initials(name) {
@@ -64,12 +131,18 @@ function initials(name) {
 function renderTotal() {
   const label = totalChipLabel();
   if (!label) return "";
+  const target =
+    typeof content.totalFollowers === "number" && content.totalFollowers > 0
+      ? content.totalFollowers
+      : 0;
   return `
     <div class="rise mb-5 flex justify-center" style="--d:20ms">
       <p class="m-0 flex flex-col items-center gap-1.5 text-center">
-        <span class="total-display font-[family-name:var(--font-display)] text-[clamp(2.1rem,8vw,2.55rem)] leading-none tracking-[-0.04em]">
-          ${escapeHtml(label)}
-        </span>
+        <span
+          class="total-display font-[family-name:var(--font-display)] text-[clamp(2.1rem,8vw,2.55rem)] leading-none tracking-[-0.04em]"
+          data-count-total="${target}"
+          data-count-final="${escapeHtml(label)}"
+        >0</span>
         <span class="text-[0.72rem] font-semibold tracking-[0.2em] text-bone-faint uppercase">
           Across platforms
         </span>
@@ -108,7 +181,20 @@ function renderSocials() {
   const rows = items
     .map((social, index) => {
       const audience = formatAudience(social);
+      const followers =
+        typeof social.followers === "number" && social.followers > 0
+          ? social.followers
+          : 0;
+      const unit = audienceUnit(social);
       const icon = ICONS[social.id] || ICONS.chevron;
+      const audienceHtml = audience
+        ? `<span
+              class="audience-count text-[0.78rem] font-medium text-bone-faint"
+              data-count-followers="${followers}"
+              data-count-unit="${escapeHtml(unit)}"
+              data-count-final="${escapeHtml(audience)}"
+            >0 ${escapeHtml(unit)}</span>`
+        : `<span class="text-[0.78rem] font-medium text-bone-faint">Open profile</span>`;
       return `
         <li class="rise" style="--d:${140 + index * 55}ms">
           <a
@@ -123,7 +209,7 @@ function renderSocials() {
             </span>
             <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
               <span class="text-[1.02rem] font-semibold tracking-[-0.015em]">${escapeHtml(social.label)}</span>
-              ${audience ? `<span class="text-[0.78rem] font-medium text-bone-faint">${escapeHtml(audience)}</span>` : `<span class="text-[0.78rem] font-medium text-bone-faint">Open profile</span>`}
+              ${audienceHtml}
             </span>
             <span class="shrink-0 text-bone-faint [&_svg]:h-[18px] [&_svg]:w-[18px]">${ICONS.chevron}</span>
           </a>
@@ -178,37 +264,50 @@ function renderFeatured() {
   `;
 }
 
-function renderCtas() {
-  const bookUrl = content.bookCallUrl?.trim();
+function renderBrandInquiry() {
   const email = content.brandEmail?.trim();
-  const parts = [];
+  if (!email) return "";
 
-  if (bookUrl) {
-    parts.push(`
-      <a
-        class="rise inline-flex min-h-[52px] items-center justify-center rounded-full bg-gradient-to-br from-ember to-ember-deep px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-ink shadow-[0_10px_28px_rgba(255,122,69,0.22)] transition hover:brightness-105 active:scale-[0.985] [-webkit-tap-highlight-color:transparent]"
-        style="--d:460ms"
-        href="${escapeHtml(bookUrl)}"
-        target="_blank"
-        rel="noopener noreferrer"
-      >${escapeHtml(content.bookCallLabel || "Book a creator strategy call")}</a>
-    `);
-  }
-
-  if (email) {
-    parts.push(`
+  return `
+    <div class="mb-6 flex flex-col gap-3">
       <a
         class="rise inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full border border-line-bright bg-transparent px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-bone transition hover:border-ember/45 hover:bg-ember/[0.08] active:scale-[0.985] [-webkit-tap-highlight-color:transparent]"
-        style="--d:510ms"
+        style="--d:460ms"
         href="mailto:${escapeHtml(email)}"
       >
         <span class="grid h-5 w-5 place-items-center text-ember [&_svg]:h-[18px] [&_svg]:w-[18px]" aria-hidden="true">${ICONS.mail}</span>
         ${escapeHtml(content.brandEmailLabel || "Brand inquiries")}
       </a>
-    `);
-  }
+    </div>
+  `;
+}
 
-  if (!parts.length) return "";
+function renderBooking() {
+  const bookings = (content.booking || []).filter((b) => b?.url?.trim());
+  if (!bookings.length) return "";
+
+  const parts = bookings.map((booking, index) => {
+    const label = booking.label?.trim() || "Book a call";
+    const price = booking.priceLabel?.trim();
+    const text = price ? `${label} — ${price}` : label;
+    const isPrimary =
+      booking.primary !== false && (booking.primary === true || index === 0);
+    const delay = 580 + index * 50;
+    const className = isPrimary
+      ? "rise inline-flex min-h-[52px] items-center justify-center rounded-full bg-gradient-to-br from-ember to-ember-deep px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-ink shadow-[0_10px_28px_rgba(255,122,69,0.22)] transition hover:brightness-105 active:scale-[0.985] [-webkit-tap-highlight-color:transparent]"
+      : "rise inline-flex min-h-[52px] items-center justify-center rounded-full border border-ember/45 bg-ember/[0.1] px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-bone transition hover:border-ember/70 hover:bg-ember/[0.16] active:scale-[0.985] [-webkit-tap-highlight-color:transparent]";
+
+    return `
+      <a
+        class="${className}"
+        style="--d:${delay}ms"
+        href="${escapeHtml(booking.url.trim())}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >${escapeHtml(text)}</a>
+    `;
+  });
+
   return `<div class="mb-6 flex flex-col gap-3">${parts.join("")}</div>`;
 }
 
@@ -218,7 +317,7 @@ function renderScoutViral() {
   const logo = project.logo?.trim();
 
   return `
-    <section class="mb-2" aria-labelledby="scoutviral-heading">
+    <section class="mb-6" aria-labelledby="scoutviral-heading">
       <a
         class="link-row rise block rounded-[22px] border border-line bg-gradient-to-br from-bone/[0.06] to-bone/[0.015] p-5 sm:p-6 [-webkit-tap-highlight-color:transparent]"
         style="--d:560ms"
@@ -266,12 +365,14 @@ function render() {
     renderHero(),
     renderSocials(),
     renderFeatured(),
-    renderCtas(),
+    renderBrandInquiry(),
     renderScoutViral(),
+    renderBooking(),
     renderFooter(),
   ].join("");
 
   if (content.metaTitle) document.title = content.metaTitle;
+  initCountUps();
 }
 
 render();

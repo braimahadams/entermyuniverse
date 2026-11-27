@@ -6,7 +6,7 @@
  * - Audience counts render only when `followers` is a positive number
  * - Total audience chip renders when `totalFollowersLabel` or `totalFollowers` is set
  * - Featured videos render only when both `cover` and `url` are set
- * - Book CTA renders only when `bookCallUrl` is set
+ * - Booking CTAs render only for items with a non-empty `url`
  * - Brand email and ScoutViral card always render
  *
  * Never put a personal Gmail address in this file.
@@ -66,8 +66,24 @@ export const content = {
 
   featuredVideos: [],
 
-  bookCallUrl: "",
-  bookCallLabel: "Book a creator strategy call",
+  /**
+   * Paid Cal.com events (Stripe checkout on Cal.com).
+   * Keep Discover off in Cal.com — site uses these direct links only.
+   */
+  booking: [
+    {
+      label: "Book 30 min",
+      priceLabel: "$19.99",
+      url: "https://cal.com/braimahadams/30min",
+      primary: true,
+    },
+    {
+      label: "Book 60 min",
+      priceLabel: "$34.99",
+      url: "https://cal.com/braimahadams/60min",
+      primary: false,
+    },
+  ],
 
   brandEmail: "adams@entermyuniverse.com",
   brandEmailLabel: "Brand inquiries",

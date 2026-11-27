@@ -25,7 +25,7 @@ All public copy and links live in one file:
 - Social rows appear only when `url` is set
 - Follower counts appear only when `followers` is a positive number
 - Featured videos appear only when both `cover` and `url` are set
-- Book CTA appears only when `bookCallUrl` is set
+- Booking CTAs appear only for `booking` items with a `url` set
 - Brand inquiries always uses `mailto:adams@entermyuniverse.com`
 - ScoutViral card always links to `https://scoutviral.com`
 
