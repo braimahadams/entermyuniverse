@@ -178,70 +178,6 @@ function renderFeatured() {
   `;
 }
 
-function renderExperience() {
-  const items = (content.experience || []).filter(
-    (item) => item?.company?.trim() && item?.role?.trim(),
-  );
-  if (!items.length) return "";
-
-  const cards = items
-    .map((item, index) => {
-      const company = item.company.trim();
-      const role = item.role.trim();
-      const dates = item.dates?.trim() || "";
-      const body = item.body?.trim() || "";
-      const logo = item.logo?.trim() || "";
-      const url = item.url?.trim() || "";
-      const inner = `
-        <div class="flex items-start gap-4">
-          ${
-            logo
-              ? `<span class="icon-pop mt-0.5 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl border border-line bg-ink-3/90 shadow-[0_8px_20px_rgba(0,0,0,0.25)]">
-                  <img src="${escapeHtml(logo)}" alt="" width="56" height="56" class="h-full w-full object-cover" decoding="async" />
-                </span>`
-              : ""
-          }
-          <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <h3 class="m-0 font-[family-name:var(--font-display)] text-[1.45rem] leading-none tracking-[-0.02em] sm:text-[1.55rem]">${escapeHtml(company)}</h3>
-              ${dates ? `<span class="text-[0.75rem] font-semibold tracking-[0.04em] text-bone-faint">${escapeHtml(dates)}</span>` : ""}
-            </div>
-            <p class="m-0 mt-1.5 text-[0.8rem] font-semibold tracking-[0.08em] text-ember uppercase">${escapeHtml(role)}</p>
-            ${body ? `<p class="mt-3 mb-0 text-[0.95rem] leading-relaxed text-bone-dim sm:text-[1rem] sm:leading-[1.55]">${escapeHtml(body)}</p>` : ""}
-          </div>
-        </div>
-      `;
-
-      if (url) {
-        return `
-          <a
-            class="link-row rise block rounded-[22px] border border-line bg-gradient-to-br from-bone/[0.06] to-bone/[0.015] p-5 sm:p-6 [-webkit-tap-highlight-color:transparent]"
-            style="--d:${400 + index * 60}ms"
-            href="${escapeHtml(url)}"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="${escapeHtml(company)} — ${escapeHtml(role)}"
-          >${inner}</a>
-        `;
-      }
-
-      return `
-        <div
-          class="rise rounded-[22px] border border-line bg-gradient-to-br from-bone/[0.06] to-bone/[0.015] p-5 sm:p-6"
-          style="--d:${400 + index * 60}ms"
-        >${inner}</div>
-      `;
-    })
-    .join("");
-
-  return `
-    <section class="mb-6" aria-labelledby="experience-heading">
-      <h2 id="experience-heading" class="rise mb-3 text-[0.7rem] font-semibold tracking-[0.18em] text-bone-faint uppercase" style="--d:380ms">Experience</h2>
-      <div class="flex flex-col gap-3">${cards}</div>
-    </section>
-  `;
-}
-
 function renderCtas() {
   const bookUrl = content.bookCallUrl?.trim();
   const email = content.brandEmail?.trim();
@@ -329,7 +265,6 @@ function render() {
     renderTotal(),
     renderHero(),
     renderSocials(),
-    renderExperience(),
     renderFeatured(),
     renderCtas(),
     renderScoutViral(),

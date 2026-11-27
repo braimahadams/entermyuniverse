@@ -66,21 +66,6 @@ export const content = {
 
   featuredVideos: [],
 
-  /**
-   * Experience / brand partnerships.
-   * Rendered when company + role are set.
-   */
-  experience: [
-    {
-      company: "Bitget",
-      role: "Brand Partner",
-      dates: "Aug 2026 – Present",
-      logo: "/logos/bitget.png",
-      url: "https://www.bitget.com",
-      body: "Creator partnership producing trading humor and short-form content for Bitget — a top global crypto exchange — to grow brand awareness with retail traders.",
-    },
-  ],
-
   bookCallUrl: "",
   bookCallLabel: "Book a creator strategy call",
 
