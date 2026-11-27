@@ -46,7 +46,7 @@
       .sheet {
         width: 210mm;
         min-height: 297mm;
-        padding: 14mm 16mm 14mm;
+        padding: 12mm 15mm 12mm;
         position: relative;
         overflow: hidden;
         background:
@@ -71,15 +71,15 @@
 
       .hero {
         display: grid;
-        grid-template-columns: 34mm 1fr;
-        gap: 8mm;
+        grid-template-columns: 32mm 1fr;
+        gap: 7mm;
         align-items: center;
-        margin-bottom: 9mm;
+        margin-bottom: 6mm;
       }
 
       .portrait {
-        width: 34mm;
-        height: 34mm;
+        width: 32mm;
+        height: 32mm;
         border-radius: 50%;
         object-fit: cover;
         border: 1.5px solid rgba(244, 241, 234, 0.16);
@@ -107,8 +107,8 @@
       }
 
       .summary {
-        margin: 0 0 8mm;
-        padding: 5mm 5.5mm;
+        margin: 0 0 5.5mm;
+        padding: 4mm 4.5mm;
         border: 1px solid var(--line);
         border-radius: 4mm;
         background: linear-gradient(
@@ -136,7 +136,7 @@
       }
 
       .section-title {
-        margin: 0 0 3.5mm;
+        margin: 0 0 2.5mm;
         font-size: 2.7mm;
         letter-spacing: 0.18em;
         text-transform: uppercase;
@@ -147,8 +147,8 @@
       .socials {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 3mm;
-        margin-bottom: 8mm;
+        gap: 2.5mm;
+        margin-bottom: 5.5mm;
       }
 
       .social {
@@ -156,7 +156,7 @@
         justify-content: space-between;
         align-items: baseline;
         gap: 3mm;
-        padding: 3.2mm 3.8mm;
+        padding: 2.6mm 3.2mm;
         border: 1px solid var(--line);
         border-radius: 3mm;
         background: rgba(244, 241, 234, 0.03);
@@ -178,22 +178,22 @@
 
       .project {
         display: grid;
-        grid-template-columns: 14mm 1fr;
-        gap: 4.5mm;
-        padding: 5mm;
+        grid-template-columns: 12mm 1fr;
+        gap: 3.5mm;
+        padding: 4mm;
         border: 1px solid var(--line);
-        border-radius: 4.5mm;
+        border-radius: 4mm;
         background: linear-gradient(
           165deg,
           rgba(244, 241, 234, 0.055),
           rgba(244, 241, 234, 0.015)
         );
-        margin-bottom: 8mm;
+        margin-bottom: 5.5mm;
       }
 
       .logo {
-        width: 14mm;
-        height: 14mm;
+        width: 12mm;
+        height: 12mm;
         border-radius: 3mm;
         object-fit: cover;
         border: 1px solid var(--line);
@@ -210,14 +210,14 @@
 
       .project h3 {
         margin: 0;
-        font-size: 6.5mm;
+        font-size: 5.5mm;
         line-height: 1;
       }
 
       .project p {
-        margin: 2.5mm 0 0;
-        font-size: 3.4mm;
-        line-height: 1.45;
+        margin: 2mm 0 0;
+        font-size: 3.2mm;
+        line-height: 1.4;
         color: var(--bone-dim);
       }
 
@@ -225,7 +225,42 @@
         display: flex;
         flex-wrap: wrap;
         gap: 2mm;
-        margin-bottom: 8mm;
+        margin-bottom: 5mm;
+      }
+
+      .education {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 4mm;
+        padding: 3.2mm 3.8mm;
+        border: 1px solid var(--line);
+        border-radius: 3mm;
+        background: rgba(244, 241, 234, 0.03);
+        margin-bottom: 4mm;
+      }
+
+      .education strong {
+        display: block;
+        font-size: 3.4mm;
+        font-weight: 700;
+        color: var(--bone);
+      }
+
+      .education em {
+        display: block;
+        margin-top: 0.8mm;
+        font-style: normal;
+        font-size: 3mm;
+        color: var(--bone-dim);
+        font-weight: 500;
+      }
+
+      .education span {
+        flex-shrink: 0;
+        font-size: 2.8mm;
+        font-weight: 600;
+        color: var(--bone-faint);
       }
 
       .skill {
@@ -240,9 +275,9 @@
 
       .footer {
         position: absolute;
-        left: 16mm;
-        right: 16mm;
-        bottom: 10mm;
+        left: 15mm;
+        right: 15mm;
+        bottom: 8mm;
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -328,6 +363,15 @@
         <span class="skill">Viral research</span>
         <span class="skill">Creator growth</span>
         <span class="skill">Brand collaboration</span>
+      </div>
+
+      <h2 class="section-title">Education</h2>
+      <div class="education">
+        <div>
+          <strong>University of Pécs, Hungary</strong>
+          <em>BSc in Computer Science Engineering</em>
+        </div>
+        <span>2021–2025</span>
       </div>
 
       <footer class="footer">
