@@ -74,25 +74,11 @@ export const content = {
 
   /**
    * Paid Cal.com consultation calls (Stripe on Cal.com).
-   * Independent of ScoutViral — personal strategy advice only.
-   * Keep Discover off in Cal.com — site uses these direct links only.
+   * Leave `booking` empty to hide the section on the homepage.
    */
   bookingTitle: "Consultation",
   bookingBlurb: "",
-  booking: [
-    {
-      label: "15 min",
-      priceLabel: "$9.99",
-      url: "https://cal.com/braimahadams/15min",
-      primary: true,
-    },
-    {
-      label: "30 min",
-      priceLabel: "$17.99",
-      url: "https://cal.com/braimahadams/30min",
-      primary: false,
-    },
-  ],
+  booking: [],
 
   brandEmail: "adams@entermyuniverse.com",
   brandEmailLabel: "Brand inquiries",

@@ -10,9 +10,7 @@ Already configured:
 - Total audience chip: `500K+`
 - Per-platform follower counts on socials
 - Instagram, TikTok, YouTube, Facebook, Snapchat links
-- Paid Cal.com booking CTAs (direct links; keep **Publish on Discover** off):
-  - 15 min — $9.99 → https://cal.com/braimahadams/15min
-  - 30 min — $17.99 → https://cal.com/braimahadams/30min
 - Brand inquiries → `mailto:adams@entermyuniverse.com`
+- Consultation booking CTAs hidden (empty `booking` in content.js; Cal.com links still available if re-enabled)
 - ScoutViral card with logo → `https://scoutviral.com`
 - Live Workers preview: https://entermyuniverse.braimahadams01.workers.dev
