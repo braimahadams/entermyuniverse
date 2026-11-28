@@ -390,10 +390,6 @@
   }
 }
 
-.portrait-halo {
-  animation: portrait-float 6.5s ease-in-out infinite;
-}
-
 .total-display {
   background: linear-gradient(
     100deg,
@@ -596,7 +592,6 @@
     transform: none;
   }
 
-  .portrait-halo,
   .cosmic-bg,
   .stars,
   .aurora-a,
