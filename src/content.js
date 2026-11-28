@@ -5,6 +5,7 @@
  * - Social rows render only when `url` is set
  * - Audience counts render only when `followers` is a positive number
  * - Total audience chip renders when `totalFollowersLabel` or `totalFollowers` is set
+ * - Monthly views line renders when `monthlyPostViews` or `monthlyPostViewsLabel` is set
  * - Featured videos render only when both `cover` and `url` are set
  * - Booking CTAs render only for items with a non-empty `url`
  * - Brand email and ScoutViral card always render
@@ -25,6 +26,11 @@ export const content = {
   /** Approved cross-platform audience chip */
   totalFollowers: 500_000,
   totalFollowersLabel: "500K+",
+
+  /** Approved cross-platform post views (last 30 days) — manual; not live API */
+  monthlyPostViews: 200_000_000,
+  monthlyPostViewsLabel: "200M+",
+  monthlyPostViewsText: "post views in the last 30 days",
 
   socials: [
     {
@@ -75,15 +81,15 @@ export const content = {
   bookingBlurb: "",
   booking: [
     {
-      label: "30 min strategy call",
-      priceLabel: "$19.99",
-      url: "https://cal.com/braimahadams/30min",
+      label: "15 min",
+      priceLabel: "$9.99",
+      url: "https://cal.com/braimahadams/15min",
       primary: true,
     },
     {
-      label: "60 min strategy call",
-      priceLabel: "$34.99",
-      url: "https://cal.com/braimahadams/60min",
+      label: "30 min",
+      priceLabel: "$17.99",
+      url: "https://cal.com/braimahadams/30min",
       primary: false,
     },
   ],

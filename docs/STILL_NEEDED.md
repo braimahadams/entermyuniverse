@@ -11,8 +11,8 @@ Already configured:
 - Per-platform follower counts on socials
 - Instagram, TikTok, YouTube, Facebook, Snapchat links
 - Paid Cal.com booking CTAs (direct links; keep **Publish on Discover** off):
-  - 30 min — $19.99 → https://cal.com/braimahadams/30min
-  - 60 min — $34.99 → https://cal.com/braimahadams/60min
+  - 15 min — $9.99 → https://cal.com/braimahadams/15min
+  - 30 min — $17.99 → https://cal.com/braimahadams/30min
 - Brand inquiries → `mailto:adams@entermyuniverse.com`
 - ScoutViral card with logo → `https://scoutviral.com`
 - Live Workers preview: https://entermyuniverse.braimahadams01.workers.dev

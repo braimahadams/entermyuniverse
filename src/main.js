@@ -2,11 +2,12 @@ import { content } from "./content.js";
 import "./styles.css";
 
 const ICONS = {
-  instagram: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.7"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor"/></svg>`,
-  tiktok: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14.2 3h2.1c.2 1.7 1.2 3.2 2.7 4.1A6.4 6.4 0 0 0 21 8.1v2.2a8.3 8.3 0 0 1-3.7-1v6.2a6.5 6.5 0 1 1-6.5-6.5c.3 0 .7 0 1 .1v2.4a4.1 4.1 0 1 0 2.9 3.9V3z"/></svg>`,
-  youtube: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3A2.7 2.7 0 0 0 2.4 7.2 28 28 0 0 0 2 12a28 28 0 0 0 .4 4.8 2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9A28 28 0 0 0 22 12a28 28 0 0 0-.4-4.8zM10 15.2V8.8L15.5 12 10 15.2z"/></svg>`,
-  facebook: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14.2 22v-8.2h2.8l.4-3.2h-3.2V8.5c0-.9.3-1.6 1.6-1.6H17.5V4.1C17.1 4 15.9 3.9 14.6 3.9c-2.7 0-4.5 1.6-4.5 4.7v2.6H7.2v3.2h2.9V22h4.1z"/></svg>`,
-  snapchat: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3c2.7 0 4.4 1.8 4.4 4.3 0 .5 0 1.7.4 2.1.3.3.8.3 1.3.5.7.2 1.1.6 1.1 1.1 0 .6-.5 1-1.2 1.3-.3.1-.6.3-.6.6 0 .7.8 1.4 1.5 1.8.5.3.7.6.7 1 0 .7-.7 1.2-1.7 1.2-.4 0-.8-.1-1.2-.2-.5-.2-1-.3-1.5 0-.8.5-1.6 1.1-3.2 1.1s-2.4-.6-3.2-1.1c-.5-.3-1-.2-1.5 0-.4.1-.8.2-1.2.2-1 0-1.7-.5-1.7-1.2 0-.4.2-.7.7-1 .7-.4 1.5-1.1 1.5-1.8 0-.3-.3-.5-.6-.6-.7-.3-1.2-.7-1.2-1.3 0-.5.4-.9 1.1-1.1.5-.2 1-.2 1.3-.5.4-.4.4-1.6.4-2.1C7.6 4.8 9.3 3 12 3z"/></svg>`,
+  /* Full-bleed brand tiles — container rounds the corners */
+  instagram: `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><radialGradient id="ig-grad" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect width="24" height="24" fill="url(#ig-grad)"/><rect x="5.4" y="5.4" width="13.2" height="13.2" rx="4" fill="none" stroke="#fff" stroke-width="1.85"/><circle cx="12" cy="12" r="3.55" fill="none" stroke="#fff" stroke-width="1.85"/><circle cx="16.85" cy="7.2" r="1.15" fill="#fff"/></svg>`,
+  tiktok: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" fill="#010101"/><g transform="translate(1.2 1.4) scale(0.9)"><path fill="#25F4EE" d="M14.2 2.8h2.1c.2 1.7 1.2 3.2 2.7 4.1A6.4 6.4 0 0 0 21 7.9v2.2a8.3 8.3 0 0 1-3.7-1v6.2a6.5 6.5 0 1 1-6.5-6.5c.3 0 .7 0 1 .1v2.4a4.1 4.1 0 1 0 2.9 3.9V2.8z" transform="translate(-0.85 0.75)"/><path fill="#FE2C55" d="M14.2 2.8h2.1c.2 1.7 1.2 3.2 2.7 4.1A6.4 6.4 0 0 0 21 7.9v2.2a8.3 8.3 0 0 1-3.7-1v6.2a6.5 6.5 0 1 1-6.5-6.5c.3 0 .7 0 1 .1v2.4a4.1 4.1 0 1 0 2.9 3.9V2.8z" transform="translate(0.85 -0.75)"/><path fill="#fff" d="M14.2 2.8h2.1c.2 1.7 1.2 3.2 2.7 4.1A6.4 6.4 0 0 0 21 7.9v2.2a8.3 8.3 0 0 1-3.7-1v6.2a6.5 6.5 0 1 1-6.5-6.5c.3 0 .7 0 1 .1v2.4a4.1 4.1 0 1 0 2.9 3.9V2.8z"/></g></svg>`,
+  youtube: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" fill="#FF0000"/><path fill="#fff" d="M9.2 7.6v8.8L17.2 12 9.2 7.6z"/></svg>`,
+  facebook: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" fill="#1877F2"/><path fill="#fff" d="M13.55 22V13.4h2.55l.38-3h-2.93V8.55c0-.86.27-1.5 1.5-1.5h1.6V4.35C15.85 4.28 14.7 4.15 13.45 4.15c-2.55 0-4.25 1.52-4.25 4.35v2.9H6.9v3h2.3V22h4.35z"/></svg>`,
+  snapchat: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" fill="#FFFC00"/><path fill="#111" d="M12 3.9c2.55 0 4.15 1.7 4.15 4.05 0 .5 0 1.6.4 2 .28.28.75.28 1.25.48.65.22 1.05.6 1.05 1.08 0 .6-.48.98-1.12 1.25-.28.1-.6.28-.6.6 0 .65.75 1.3 1.4 1.68.48.28.65.58.65.95 0 .65-.65 1.12-1.6 1.12-.38 0-.75-.1-1.12-.22-.48-.16-.92-.28-1.4 0-.75.48-1.5 1.02-3.06 1.02s-2.3-.54-3.06-1.02c-.48-.28-.92-.16-1.4 0-.37.12-.74.22-1.12.22-.95 0-1.6-.47-1.6-1.12 0-.37.17-.67.65-.95.65-.38 1.4-1.03 1.4-1.68 0-.32-.32-.5-.6-.6-.64-.27-1.12-.65-1.12-1.25 0-.48.4-.86 1.05-1.08.5-.2.97-.2 1.25-.48.4-.4.4-1.5.4-2C7.85 5.6 9.45 3.9 12 3.9z"/></svg>`,
   chevron: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   arrow: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   mail: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M4.5 7.5 12 13l7.5-5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -56,6 +57,13 @@ function formatAudience(social) {
 function totalChipLabel() {
   if (content.totalFollowersLabel?.trim()) return content.totalFollowersLabel.trim();
   const n = content.totalFollowers;
+  if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) return "";
+  return formatCompact(n);
+}
+
+function monthlyViewsLabel() {
+  if (content.monthlyPostViewsLabel?.trim()) return content.monthlyPostViewsLabel.trim();
+  const n = content.monthlyPostViews;
   if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) return "";
   return formatCompact(n);
 }
@@ -117,6 +125,17 @@ function initCountUps() {
       finalLabel,
     });
   });
+
+  const viewsEl = document.querySelector("[data-count-views]");
+  if (viewsEl) {
+    const target = Number(viewsEl.dataset.countViews) || 0;
+    const finalLabel = viewsEl.dataset.countFinal || monthlyViewsLabel();
+    animateCount(viewsEl, target, {
+      duration: 1500,
+      delay: 320,
+      finalLabel,
+    });
+  }
 }
 
 function initials(name) {
@@ -135,15 +154,44 @@ function renderTotal() {
     typeof content.totalFollowers === "number" && content.totalFollowers > 0
       ? content.totalFollowers
       : 0;
+
+  const viewsLabel = monthlyViewsLabel();
+  const viewsTarget =
+    typeof content.monthlyPostViews === "number" && content.monthlyPostViews > 0
+      ? content.monthlyPostViews
+      : 0;
+  const viewsText =
+    content.monthlyPostViewsText?.trim() || "post views in the last 30 days";
+  const viewsLine =
+    viewsLabel || viewsTarget > 0
+      ? `
+        <span class="views-line mt-1 inline-flex max-w-[22rem] items-center justify-center gap-1.5 text-[0.72rem] font-semibold tracking-[0.04em] text-bone-faint">
+          <span class="views-arrow" aria-hidden="true">↗</span>
+          <span class="inline-flex flex-wrap items-center justify-center gap-x-1">
+            <span
+              class="tabular-nums text-bone-dim"
+              data-count-views="${viewsTarget}"
+              data-count-final="${escapeHtml(viewsLabel || formatCompact(viewsTarget))}"
+            >0</span>
+            <span>${escapeHtml(viewsText)}</span>
+          </span>
+        </span>
+      `
+      : "";
+
   return `
     <div class="rise mb-5 flex justify-center" style="--d:20ms">
       <p class="m-0 flex flex-col items-center gap-1.5 text-center">
-        <span
-          class="total-display font-[family-name:var(--font-display)] text-[clamp(2.1rem,8vw,2.55rem)] leading-none tracking-[-0.04em]"
-          data-count-total="${target}"
-          data-count-final="${escapeHtml(label)}"
-        >0</span>
-        <span class="text-[0.72rem] font-semibold tracking-[0.2em] text-bone-faint uppercase">
+        <span class="inline-flex items-center justify-center gap-2">
+          <span
+            class="total-display font-[family-name:var(--font-display)] text-[clamp(2.1rem,8vw,2.55rem)] leading-none tracking-[-0.04em]"
+            data-count-total="${target}"
+            data-count-final="${escapeHtml(label)}"
+          >0</span>
+          <span class="text-[0.95rem] font-semibold leading-none tracking-[-0.01em] text-bone-dim">followers</span>
+        </span>
+        ${viewsLine}
+        <span class="mt-0.5 text-[0.72rem] font-semibold tracking-[0.2em] text-bone-faint uppercase">
           Across platforms
         </span>
       </p>
@@ -162,7 +210,7 @@ function renderHero() {
       <div class="portrait-halo relative z-0 mb-4 h-28 w-28 overflow-hidden rounded-full border-2 border-bone/15 shadow-[0_0_0_1px_rgba(255,122,69,0.12)]">
         ${media}
       </div>
-      <h1 class="m-0 font-[family-name:var(--font-display)] text-[clamp(2rem,7vw,2.55rem)] font-normal leading-none tracking-[-0.03em]">
+      <h1 class="name-title m-0 font-[family-name:var(--font-display)] text-[clamp(2rem,7vw,2.55rem)] font-normal leading-none tracking-[-0.03em]">
         ${escapeHtml(content.name)}
       </h1>
       ${
@@ -204,14 +252,14 @@ function renderSocials() {
             rel="noopener noreferrer"
             aria-label="${escapeHtml(social.label)}${audience ? ` — ${audience}` : ""}"
           >
-            <span class="icon-pop grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-ink-3/80 text-bone [&_svg]:h-[22px] [&_svg]:w-[22px]">
+            <span class="icon-pop social-icon grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-[12px] shadow-[0_0_0_1px_rgba(244,241,234,0.08)] [&_svg]:h-full [&_svg]:w-full">
               ${icon}
             </span>
             <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
               <span class="text-[1.02rem] font-semibold tracking-[-0.015em]">${escapeHtml(social.label)}</span>
               ${audienceHtml}
             </span>
-            <span class="shrink-0 text-bone-faint [&_svg]:h-[18px] [&_svg]:w-[18px]">${ICONS.chevron}</span>
+            <span class="link-chevron shrink-0 text-bone-faint [&_svg]:h-[18px] [&_svg]:w-[18px]">${ICONS.chevron}</span>
           </a>
         </li>
       `;
@@ -242,7 +290,7 @@ function renderFeatured() {
       const title = video.title?.trim() || "Featured video";
       return `
         <a
-          class="rise relative block aspect-[9/16] overflow-hidden rounded-[14px] border border-line bg-ink-3 transition-transform duration-300 [-webkit-tap-highlight-color:transparent] hover:-translate-y-0.5"
+          class="featured-card rise relative block aspect-[9/16] overflow-hidden rounded-[14px] border border-line bg-ink-3 [-webkit-tap-highlight-color:transparent]"
           style="--d:${320 + index * 70}ms"
           href="${escapeHtml(video.url.trim())}"
           target="_blank"
@@ -271,16 +319,18 @@ function renderBrandInquiry() {
   return `
     <div class="mb-6 flex flex-col gap-3">
       <a
-        class="rise inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full border border-line-bright bg-transparent px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-bone transition hover:border-ember/45 hover:bg-ember/[0.08] active:scale-[0.985] [-webkit-tap-highlight-color:transparent]"
+        class="brand-btn rise inline-flex min-h-[52px] items-center justify-center gap-2.5 rounded-full border border-line-bright bg-transparent px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-bone [-webkit-tap-highlight-color:transparent]"
         style="--d:460ms"
         href="mailto:${escapeHtml(email)}"
       >
-        <span class="grid h-5 w-5 place-items-center text-ember [&_svg]:h-[18px] [&_svg]:w-[18px]" aria-hidden="true">${ICONS.mail}</span>
+        <span class="brand-btn-icon grid h-5 w-5 place-items-center text-ember [&_svg]:h-[18px] [&_svg]:w-[18px]" aria-hidden="true">${ICONS.mail}</span>
         ${escapeHtml(content.brandEmailLabel || "Brand inquiries")}
       </a>
     </div>
   `;
 }
+
+const ICON_VIDEO_OUTLINE = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="7.2" width="11" height="9.6" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M15.5 9.2 20 7.4v9.2l-4.5-1.8V9.2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`;
 
 function renderBooking() {
   const bookings = (content.booking || []).filter((b) => b?.url?.trim());
@@ -292,13 +342,12 @@ function renderBooking() {
   const parts = bookings.map((booking, index) => {
     const label = booking.label?.trim() || "Strategy call";
     const price = booking.priceLabel?.trim();
-    const text = price ? `${label} — ${price}` : label;
     const isPrimary =
       booking.primary !== false && (booking.primary === true || index === 0);
     const delay = 580 + index * 50;
     const className = isPrimary
-      ? "rise inline-flex min-h-[52px] items-center justify-center rounded-full bg-gradient-to-br from-ember to-ember-deep px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-ink shadow-[0_10px_28px_rgba(255,122,69,0.22)] transition hover:brightness-105 active:scale-[0.985] [-webkit-tap-highlight-color:transparent]"
-      : "rise inline-flex min-h-[52px] items-center justify-center rounded-full border border-ember/45 bg-ember/[0.1] px-5 py-3 text-center text-[0.95rem] font-semibold tracking-[-0.01em] text-bone transition hover:border-ember/70 hover:bg-ember/[0.16] active:scale-[0.985] [-webkit-tap-highlight-color:transparent]";
+      ? "book-btn book-btn-primary rise"
+      : "book-btn book-btn-secondary rise";
 
     return `
       <a
@@ -307,7 +356,11 @@ function renderBooking() {
         href="${escapeHtml(booking.url.trim())}"
         target="_blank"
         rel="noopener noreferrer"
-      >${escapeHtml(text)}</a>
+      >
+        <span class="book-btn-icon" aria-hidden="true">${ICON_VIDEO_OUTLINE}</span>
+        <span class="book-btn-label">${escapeHtml(label)}</span>
+        ${price ? `<small class="book-btn-price">${escapeHtml(price)}</small>` : ""}
+      </a>
     `;
   });
 
@@ -321,7 +374,7 @@ function renderBooking() {
             : ""
         }
       </div>
-      <div class="flex flex-col gap-3">${parts.join("")}</div>
+      <div class="book-stack">${parts.join("")}</div>
     </section>
   `;
 }

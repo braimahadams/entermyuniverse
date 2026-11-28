@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Consultation button concepts — Enter My Universe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #07070a;
+        --ink-2: #0c0c11;
+        --ink-3: #14141b;
+        --bone: #f4f1ea;
+        --bone-dim: #a8a49c;
+        --bone-faint: #6b6862;
+        --ember: #ff7a45;
+        --ember-deep: #e2542a;
+        --line: rgba(244, 241, 234, 0.09);
+        --line-bright: rgba(244, 241, 234, 0.18);
+        --font-display: "Instrument Serif", Georgia, serif;
+        --font-sans: "DM Sans", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--ink);
+        color: var(--bone);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+
+      h1 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 2rem;
+        margin: 0 0 0.5rem;
+      }
+
+      .lede {
+        color: var(--bone-dim);
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin: 0 0 2rem;
+      }
+
+      .concept {
+        margin-bottom: 2rem;
+        padding: 1.25rem 1rem 1.5rem;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(244, 241, 234, 0.03), transparent);
+      }
+
+      .concept-label {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .concept-label strong {
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .concept-label span {
+        color: var(--bone-faint);
+        font-size: 0.8rem;
+      }
+
+      .phone {
+        max-width: 360px;
+        margin: 0 auto;
+        padding: 1.25rem 1rem;
+        border-radius: 16px;
+        background: var(--ink-2);
+        border: 1px solid var(--line);
+      }
+
+      .sec {
+        margin: 0 0 0.85rem;
+        text-align: center;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--bone-faint);
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* A — Compact stacked pills (half width, centered, flat) */
+      .a-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.65rem;
+      }
+
+      .a-primary,
+      .a-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 11.5rem;
+        min-height: 2.75rem;
+        padding: 0.65rem 1rem;
+        border-radius: 999px;
+        font-size: 0.84rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        text-align: center;
+      }
+
+      .a-primary {
+        background: var(--ember);
+        color: var(--ink);
+      }
+
+      .a-secondary {
+        border: 1px solid rgba(255, 122, 69, 0.4);
+        background: transparent;
+        color: var(--bone);
+      }
+
+      /* B — Side-by-side pair */
+      .b-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+        max-width: 18rem;
+        margin: 0 auto;
+      }
+
+      .b-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+        min-height: 4.1rem;
+        padding: 0.7rem 0.5rem;
+        border-radius: 14px;
+        text-align: center;
+      }
+
+      .b-card.primary {
+        background: var(--ember);
+        color: var(--ink);
+      }
+
+      .b-card.secondary {
+        border: 1px solid var(--line-bright);
+        background: rgba(244, 241, 234, 0.03);
+        color: var(--bone);
+      }
+
+      .b-dur {
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+
+      .b-price {
+        font-size: 0.72rem;
+        opacity: 0.8;
+      }
+
+      /* C — Duration / price split */
+      .c-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.55rem;
+      }
+
+      .c-btn {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        width: 100%;
+        max-width: 13.5rem;
+        min-height: 2.85rem;
+        padding: 0.55rem 0.85rem 0.55rem 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--line-bright);
+        background: rgba(244, 241, 234, 0.03);
+      }
+
+      .c-btn.primary {
+        border-color: transparent;
+        background: var(--ember);
+        color: var(--ink);
+      }
+
+      .c-left {
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-align: left;
+      }
+
+      .c-right {
+        font-size: 0.78rem;
+        font-weight: 600;
+        opacity: 0.85;
+        padding-left: 0.75rem;
+        border-left: 1px solid rgba(7, 7, 10, 0.18);
+      }
+
+      .c-btn:not(.primary) .c-right {
+        border-left-color: var(--line-bright);
+        color: var(--ember);
+      }
+
+      /* D — Quiet text actions */
+      .d-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.9rem;
+        padding: 0.35rem 0 0.15rem;
+      }
+
+      .d-link {
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--bone);
+        border-bottom: 1px solid rgba(255, 122, 69, 0.55);
+        padding-bottom: 0.15rem;
+      }
+
+      .d-link em {
+        font-style: normal;
+        color: var(--ember);
+        margin-left: 0.35rem;
+      }
+
+      /* E — Soft chips with serif time */
+      .e-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      .e-chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 11rem;
+        padding: 0.75rem 1rem;
+        border-radius: 16px;
+        background: var(--ink-3);
+        border: 1px solid var(--line);
+      }
+
+      .e-chip.primary {
+        border-color: rgba(255, 122, 69, 0.35);
+        background: rgba(255, 122, 69, 0.1);
+      }
+
+      .e-time {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      .e-meta {
+        margin-top: 0.35rem;
+        font-size: 0.72rem;
+        color: var(--bone-dim);
+      }
+
+      .e-chip.primary .e-meta {
+        color: var(--ember);
+      }
+
+      /* F — Slim outline + solid twin */
+      .f-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.55rem;
+      }
+
+      .f-btn {
+        display: inline-flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 0.45rem;
+        width: 100%;
+        max-width: 12rem;
+        min-height: 2.6rem;
+        padding: 0.55rem 1rem;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
+
+      .f-btn.primary {
+        background: linear-gradient(180deg, #ff8a5a, var(--ember-deep));
+        color: var(--ink);
+      }
+
+      .f-btn.secondary {
+        border: 1px solid var(--line-bright);
+        color: var(--bone);
+        background: transparent;
+      }
+
+      .f-btn small {
+        font-size: 0.72rem;
+        font-weight: 600;
+        opacity: 0.75;
+      }
+
+      .pick {
+        margin-top: 2rem;
+        padding: 1rem 1.1rem;
+        border-radius: 14px;
+        border: 1px solid var(--line-bright);
+        color: var(--bone-dim);
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+
+      .pick code {
+        color: var(--ember);
+        font-family: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Consultation buttons</h1>
+      <p class="lede">
+        Shorter, centered options — less glow, less “full-bleed pill.” Reply with a letter
+        (A–F).
+      </p>
+
+      <section class="concept" aria-label="Concept A">
+        <div class="concept-label">
+          <strong>A — Compact pills</strong>
+          <span>~half width, stacked, flat</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="a-stack">
+            <a class="a-primary" href="#">30 min · $19.99</a>
+            <a class="a-secondary" href="#">60 min · $34.99</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="concept" aria-label="Concept B">
+        <div class="concept-label">
+          <strong>B — Side by side</strong>
+          <span>two equal cards</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="b-row">
+            <a class="b-card primary" href="#">
+              <span class="b-dur">30 min</span>
+              <span class="b-price">$19.99</span>
+            </a>
+            <a class="b-card secondary" href="#">
+              <span class="b-dur">60 min</span>
+              <span class="b-price">$34.99</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="concept" aria-label="Concept C">
+        <div class="concept-label">
+          <strong>C — Split chip</strong>
+          <span>label left · price right</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="c-stack">
+            <a class="c-btn primary" href="#">
+              <span class="c-left">30 min call</span>
+              <span class="c-right">$19.99</span>
+            </a>
+            <a class="c-btn" href="#">
+              <span class="c-left">60 min call</span>
+              <span class="c-right">$34.99</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="concept" aria-label="Concept D">
+        <div class="concept-label">
+          <strong>D — Quiet links</strong>
+          <span>minimal, editorial</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="d-stack">
+            <a class="d-link" href="#">30 min strategy call<em>$19.99</em></a>
+            <a class="d-link" href="#">60 min strategy call<em>$34.99</em></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="concept" aria-label="Concept E">
+        <div class="concept-label">
+          <strong>E — Serif time chips</strong>
+          <span>display type for duration</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="e-stack">
+            <a class="e-chip primary" href="#">
+              <span class="e-time">30 min</span>
+              <span class="e-meta">Strategy call · $19.99</span>
+            </a>
+            <a class="e-chip" href="#">
+              <span class="e-time">60 min</span>
+              <span class="e-meta">Strategy call · $34.99</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="concept" aria-label="Concept F">
+        <div class="concept-label">
+          <strong>F — Slim twin</strong>
+          <span>short solid + outline</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="f-stack">
+            <a class="f-btn primary" href="#">30 min <small>$19.99</small></a>
+            <a class="f-btn secondary" href="#">60 min <small>$34.99</small></a>
+          </div>
+        </div>
+      </section>
+
+      <p class="pick">
+        Reply with a letter, e.g. <code>Use A</code> or <code>Use B</code>. I’ll ship that
+        style on the live consultation section (half-width, centered).
+      </p>
+    </div>
+  </body>
+</html>

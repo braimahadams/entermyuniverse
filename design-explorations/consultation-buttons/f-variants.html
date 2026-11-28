@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>F consultation variants — Enter My Universe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #07070a;
+        --ink-2: #0c0c11;
+        --ink-3: #14141b;
+        --bone: #f4f1ea;
+        --bone-dim: #a8a49c;
+        --bone-faint: #6b6862;
+        --ember: #ff7a45;
+        --ember-deep: #e2542a;
+        --line: rgba(244, 241, 234, 0.09);
+        --line-bright: rgba(244, 241, 234, 0.18);
+        --font-display: "Instrument Serif", Georgia, serif;
+        --font-sans: "DM Sans", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--ink);
+        color: var(--bone);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+
+      h1 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 1.85rem;
+        margin: 0 0 0.4rem;
+      }
+
+      .lede {
+        color: var(--bone-dim);
+        font-size: 0.92rem;
+        line-height: 1.5;
+        margin: 0 0 1.75rem;
+      }
+
+      .icon-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 0 0 1.75rem;
+      }
+
+      .icon-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.75rem;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--ink-2);
+        min-width: 5.5rem;
+      }
+
+      .icon-card span {
+        font-size: 0.65rem;
+        color: var(--bone-faint);
+        letter-spacing: 0.04em;
+      }
+
+      .icon-card svg,
+      .icon-card img {
+        width: 36px;
+        height: 36px;
+        display: block;
+      }
+
+      .concept {
+        margin-bottom: 1.5rem;
+        padding: 1.15rem 1rem 1.35rem;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(244, 241, 234, 0.03), transparent);
+      }
+
+      .concept-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.9rem;
+        font-size: 0.78rem;
+      }
+
+      .concept-label strong {
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .concept-label span {
+        color: var(--bone-faint);
+      }
+
+      .phone {
+        max-width: 360px;
+        margin: 0 auto;
+        padding: 1.2rem 1rem;
+        border-radius: 16px;
+        background: var(--ink-2);
+        border: 1px solid var(--line);
+      }
+
+      .sec {
+        margin: 0 0 0.85rem;
+        text-align: center;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--bone-faint);
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .f-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.55rem;
+      }
+
+      .f-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 12rem;
+        min-height: 2.65rem;
+        padding: 0.55rem 1rem;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .f-btn.primary {
+        background: linear-gradient(180deg, #ff8a5a, var(--ember-deep));
+        color: var(--ink);
+      }
+
+      .f-btn.secondary {
+        border: 1px solid var(--line-bright);
+        color: var(--bone);
+        background: transparent;
+      }
+
+      .f-btn small {
+        font-size: 0.72rem;
+        font-weight: 600;
+        opacity: 0.78;
+      }
+
+      .f-btn .glyph {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+      }
+
+      .f-btn .glyph svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+      }
+
+      .f-btn.primary .glyph-video-on-dark rect {
+        fill: rgba(7, 7, 10, 0.22);
+      }
+
+      .meta-line {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.85rem;
+        margin-bottom: 0.85rem;
+        color: var(--bone-dim);
+        font-size: 0.78rem;
+        font-weight: 500;
+      }
+
+      .meta-line .item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .meta-line svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .pick {
+        margin-top: 1.5rem;
+        padding: 1rem 1.1rem;
+        border-radius: 14px;
+        border: 1px solid var(--line-bright);
+        color: var(--bone-dim);
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+
+      .pick code {
+        color: var(--ember);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>F buttons + icons</h1>
+      <p class="lede">
+        Color design of <strong>F</strong> (slim solid + outline, half-width, centered).
+        Crisp SVG icons inspired by Cal.com (video badge + clock). Pick a letter.
+      </p>
+
+      <div class="icon-row" aria-label="Icon options">
+        <div class="icon-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect width="24" height="24" rx="6" fill="#1c1c22" />
+            <rect x="5" y="8" width="9.5" height="8" rx="1.8" fill="#fff" />
+            <path fill="#fff" d="M15.2 9.4 19.2 7.6v8.8l-4-1.8V9.4z" />
+          </svg>
+          <span>V1 charcoal</span>
+        </div>
+        <div class="icon-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect width="24" height="24" rx="6" fill="#ff7a45" />
+            <rect x="5" y="8" width="9.5" height="8" rx="1.8" fill="#07070a" />
+            <path fill="#07070a" d="M15.2 9.4 19.2 7.6v8.8l-4-1.8V9.4z" />
+          </svg>
+          <span>V2 ember</span>
+        </div>
+        <div class="icon-card">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect
+              x="3.5"
+              y="7.2"
+              width="11"
+              height="9.6"
+              rx="2"
+              stroke="#ff7a45"
+              stroke-width="1.7"
+            />
+            <path
+              d="M15.5 9.2 20 7.4v9.2l-4.5-1.8V9.2z"
+              stroke="#ff7a45"
+              stroke-width="1.7"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>V3 outline</span>
+        </div>
+        <div class="icon-card">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="8" stroke="#ff7a45" stroke-width="1.7" />
+            <path
+              d="M12 8.2v4.2l3 1.8"
+              stroke="#ff7a45"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>T1 clock</span>
+        </div>
+        <div class="icon-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect width="24" height="24" rx="6" fill="#ff7a45" />
+            <circle cx="12" cy="12" r="6.2" fill="none" stroke="#07070a" stroke-width="1.7" />
+            <path
+              d="M12 8.5v3.8l2.6 1.6"
+              fill="none"
+              stroke="#07070a"
+              stroke-width="1.7"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span>T2 badge</span>
+        </div>
+      </div>
+
+      <!-- F1 no icons -->
+      <section class="concept">
+        <div class="concept-label">
+          <strong>F1 — No icons</strong>
+          <span>plain F</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="f-stack">
+            <a class="f-btn primary" href="#">30 min <small>$19.99</small></a>
+            <a class="f-btn secondary" href="#">60 min <small>$34.99</small></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- F2 video only -->
+      <section class="concept">
+        <div class="concept-label">
+          <strong>F2 — Video only</strong>
+          <span>V1 charcoal badge</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="f-stack">
+            <a class="f-btn primary" href="#">
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <rect width="24" height="24" rx="6" fill="#1c1c22" />
+                  <rect x="5" y="8" width="9.5" height="8" rx="1.8" fill="#fff" />
+                  <path fill="#fff" d="M15.2 9.4 19.2 7.6v8.8l-4-1.8V9.4z" />
+                </svg>
+              </span>
+              30 min <small>$19.99</small>
+            </a>
+            <a class="f-btn secondary" href="#">
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <rect width="24" height="24" rx="6" fill="#ff7a45" />
+                  <rect x="5" y="8" width="9.5" height="8" rx="1.8" fill="#07070a" />
+                  <path fill="#07070a" d="M15.2 9.4 19.2 7.6v8.8l-4-1.8V9.4z" />
+                </svg>
+              </span>
+              60 min <small>$34.99</small>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- F3 time only -->
+      <section class="concept">
+        <div class="concept-label">
+          <strong>F3 — Time only</strong>
+          <span>clock outline</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="f-stack">
+            <a class="f-btn primary" href="#">
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="8" stroke="#07070a" stroke-width="1.8" />
+                  <path
+                    d="M12 8.2v4.2l3 1.8"
+                    stroke="#07070a"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              30 min <small>$19.99</small>
+            </a>
+            <a class="f-btn secondary" href="#">
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="8" stroke="#ff7a45" stroke-width="1.8" />
+                  <path
+                    d="M12 8.2v4.2l3 1.8"
+                    stroke="#ff7a45"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              60 min <small>$34.99</small>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- F4 video + time meta above -->
+      <section class="concept">
+        <div class="concept-label">
+          <strong>F4 — Meta row + F buttons</strong>
+          <span>Cal.com style details</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="meta-line">
+            <span class="item">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="8" stroke="#a8a49c" stroke-width="1.7" />
+                <path
+                  d="M12 8.2v4.2l3 1.8"
+                  stroke="#a8a49c"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                />
+              </svg>
+              30 / 60 min
+            </span>
+            <span class="item">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect width="24" height="24" rx="6" fill="#3a3a42" />
+                <rect x="5" y="8" width="9.5" height="8" rx="1.8" fill="#fff" />
+                <path fill="#fff" d="M15.2 9.4 19.2 7.6v8.8l-4-1.8V9.4z" />
+              </svg>
+              Video call
+            </span>
+          </div>
+          <div class="f-stack">
+            <a class="f-btn primary" href="#">30 min <small>$19.99</small></a>
+            <a class="f-btn secondary" href="#">60 min <small>$34.99</small></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- F5 both icons in button -->
+      <section class="concept">
+        <div class="concept-label">
+          <strong>F5 — Time + video in button</strong>
+          <span>dual glyphs</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="f-stack">
+            <a class="f-btn primary" href="#">
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="8" stroke="#07070a" stroke-width="1.8" />
+                  <path
+                    d="M12 8.2v4.2l3 1.8"
+                    stroke="#07070a"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </span>
+              30 min
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <rect width="24" height="24" rx="6" fill="#1c1c22" />
+                  <rect x="5" y="8" width="9.5" height="8" rx="1.8" fill="#fff" />
+                  <path fill="#fff" d="M15.2 9.4 19.2 7.6v8.8l-4-1.8V9.4z" />
+                </svg>
+              </span>
+              <small>$19.99</small>
+            </a>
+            <a class="f-btn secondary" href="#">
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="8" stroke="#ff7a45" stroke-width="1.8" />
+                  <path
+                    d="M12 8.2v4.2l3 1.8"
+                    stroke="#ff7a45"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </span>
+              60 min
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <rect width="24" height="24" rx="6" fill="#ff7a45" />
+                  <rect x="5" y="8" width="9.5" height="8" rx="1.8" fill="#07070a" />
+                  <path fill="#07070a" d="M15.2 9.4 19.2 7.6v8.8l-4-1.8V9.4z" />
+                </svg>
+              </span>
+              <small>$34.99</small>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- F6 ember video -->
+      <section class="concept">
+        <div class="concept-label">
+          <strong>F6 — Ember video badge</strong>
+          <span>V2 on primary</span>
+        </div>
+        <div class="phone">
+          <p class="sec">Consultation</p>
+          <div class="f-stack">
+            <a class="f-btn primary" href="#">
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <rect class="glyph-video-on-dark" width="24" height="24" rx="6" fill="#07070a" />
+                  <rect x="5" y="8" width="9.5" height="8" rx="1.8" fill="#fff" />
+                  <path fill="#fff" d="M15.2 9.4 19.2 7.6v8.8l-4-1.8V9.4z" />
+                </svg>
+              </span>
+              30 min <small>$19.99</small>
+            </a>
+            <a class="f-btn secondary" href="#">
+              <span class="glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect
+                    x="3.5"
+                    y="7.2"
+                    width="11"
+                    height="9.6"
+                    rx="2"
+                    stroke="#ff7a45"
+                    stroke-width="1.7"
+                  />
+                  <path
+                    d="M15.5 9.2 20 7.4v9.2l-4.5-1.8V9.2z"
+                    stroke="#ff7a45"
+                    stroke-width="1.7"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              60 min <small>$34.99</small>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <p class="pick">
+        Reply like <code>Use F4</code> or <code>Use F2 with V1</code>. I’ll ship that on the
+        site (half-width, centered, F colors).
+      </p>
+    </div>
+  </body>
+</html>
